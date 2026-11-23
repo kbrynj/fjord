@@ -16,6 +16,16 @@ public sealed class AppSettings
     public string Theme { get; set; } = "System";
     public string DefaultUsername { get; set; } = "";
     public string? LastDownloadFolder { get; set; }
+    /// <summary>Where session logs go. Environment variables are expanded.</summary>
+    public string LogFolder { get; set; } =
+        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Fjord logs");
+    /// <summary>Log file name: {session} {host} {user} {date} {time}.</summary>
+    public string LogFileName { get; set; } = Fjord.Core.Logging.SessionLogger.DefaultFileNamePattern;
+    /// <summary>true = exact bytes incl. colour codes (replay with cat); false = readable plain text.</summary>
+    public bool LogRaw { get; set; }
+    /// <summary>Plain-text logs: put the time in front of every line.</summary>
+    public bool LogTimestamps { get; set; } = true;
+
     /// <summary>SFTP tabs show a local (this PC) file pane next to the server's files.</summary>
     public bool SftpTwoPane { get; set; }
     /// <summary>Folder the local pane opens in (where it was last).</summary>

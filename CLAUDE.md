@@ -41,6 +41,9 @@ SSH.NET 2026.0.1, xterm.js 6 in WebView2. Personal tool: prefer simple, readable
   **Colour prompt** (`Core/Ssh/ColorPromptInstaller.cs`) edits the server's rc file inside `# >>> Fjord colour prompt >>>`
   markers; tested on Debian bash (root + login-file fallback), zsh, Alpine BusyBox ash, fish (refused). Every
   command it runs has a timeout, because start-up files can wait for input.
+- **Session logs**: `Core/Logging/SessionLogger.cs` (thread-safe; output arrives on the terminal reader thread) and
+  `PlainTextConverter` (streaming state machine: strips CSI/OSC/DCS, handles split UTF-8 and escapes, \r overwrite,
+  backspace, alternate screen). `TerminalTab.EnqueueOutput` feeds it; `LogFeature` is the toolbar menu.
 - Help never blocks work: guides open in the non-modal `GuideWindow` (`Assets/guide/*.html`); inline hints over popups.
 - Icons are Segoe Fluent Icons code points written as `""` escapes (not raw characters).
 

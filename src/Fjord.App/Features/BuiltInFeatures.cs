@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using Fjord.Core.Keys;
@@ -173,6 +174,54 @@ public sealed class ColorPromptFeature : IAppFeature
             return;
         }
         MessageBox.Show(ctx.Shell, result.Message, Title, MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+}
+
+/// <summary>Session log: start/stop writing terminal output to a file, open it, or go to the log folder.</summary>
+public sealed class LogFeature : IAppFeature
+{
+    public string Title => "Log";
+    public string Glyph => "";
+    public FeatureScope Scope => FeatureScope.Session;
+    public string? ToolTip => "Save everything this terminal shows to a file";
+
+    public void Execute(FeatureContext ctx)
+    {
+        if (ctx.Terminal is not { } tab) return;
+        var menu = new System.Windows.Controls.ContextMenu { Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint };
+
+        void Add(string header, Action action, bool enabled = true)
+        {
+            var item = new System.Windows.Controls.MenuItem { Header = header, IsEnabled = enabled };
+            item.Click += (_, _) => action();
+            menu.Items.Add(item);
+        }
+
+        if (tab.IsLogging)
+        {
+            Add("Stop logging", () => tab.StopLogging());
+            Add("Open the log", () => OpenFile(ctx, tab.LogPath!));
+            Add("Show the log in Explorer", () => Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{tab.LogPath}\"")));
+        }
+        else
+        {
+            Add("Start logging to a file", () => tab.StartLogging());
+        }
+        menu.Items.Add(new System.Windows.Controls.Separator());
+        Add("Open the log folder", () =>
+        {
+            var folder = Environment.ExpandEnvironmentVariables(AppServices.Settings.LogFolder);
+            Directory.CreateDirectory(folder);
+            Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true });
+        });
+        Add("Log settings…", () => new SettingsDialog { Owner = ctx.Shell }.ShowDialog());
+        menu.IsOpen = true;
+    }
+
+    private static void OpenFile(FeatureContext ctx, string path)
+    {
+        try { Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); }
+        catch (Exception ex) { UiHelpers.ShowError(ctx.Shell, ex.Message, "Session log"); }
     }
 }
 

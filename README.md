@@ -36,6 +36,10 @@ keys instead of passwords. It uses the Windows 11 Fluent look, and the terminal 
 - **Colour prompt** — many servers (root on Debian/Ubuntu, Alpine, minimal images) show a plain `user@host:path`.
   One click adds a small, marked block to your shell's start-up file (bash, zsh or BusyBox sh) that colours it with
   your scheme's colours — red when you're root. Click again to remove it.
+- **Session logs** — the **Log** button saves everything a terminal shows to a file, or tick *Log this session* in the
+  session editor to log every connection. Plain-text logs strip colour codes, keep only the final state of progress
+  bars, replace full-screen programs (vim, top) with a note, and can put the time on every line; raw logs keep the
+  exact bytes. Folder and file-name pattern (`{session}_{date}_{time}.log`) are set in Settings.
 
 ### SFTP file manager
 - **Edit remote files in any Windows app** — open `nginx.conf` in Notepad++ or VS Code, and every save is uploaded
@@ -154,7 +158,7 @@ See [CLAUDE.md](CLAUDE.md) for the architecture rules (threading, persistence, t
 
 ### Roadmap ideas
 
-Snippets / macros · jump hosts · session logging to file · Pageant / ssh-agent support ·
+Snippets / macros · jump hosts · Pageant / ssh-agent support ·
 owner/group names instead of ids.
 
 ## License

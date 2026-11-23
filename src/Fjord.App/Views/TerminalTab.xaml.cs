@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Fjord.Core.Logging;
 using Fjord.Core.Profiles;
 using Fjord.Core.Ssh;
 using Fjord.Features;
@@ -125,6 +126,11 @@ public partial class TerminalTab : UserControl, ISessionTab
             SaveProfileChanges();
             _client = client;
             _stream = client.CreateShellStream("xterm-256color", _cols, _rows, 0, 0, 64 * 1024);
+
+            // Sessions set to auto-log start here (unless you stopped the log in this tab).
+            if (_logger is null && !_logStoppedByUser && (AppServices.Profiles.Find(Profile.Id) ?? Profile).LogSessions)
+                StartLogging(showErrors: false);
+            _logger?.WriteNote($"Connected to {Profile.Target}");
             StartReader(_stream);
 
             if (!string.IsNullOrWhiteSpace(Profile.StartupCommand))
@@ -193,7 +199,11 @@ public partial class TerminalTab : UserControl, ISessionTab
         _stream = null;
         _tunnelManager = null;
         Tunnels.Attach(null);
-        if (_state != State.Disconnected) PostStatus(message);
+        if (_state != State.Disconnected)
+        {
+            PostStatus(message);
+            _logger?.WriteNote("Disconnected — " + message.Replace(" Press Enter to reconnect.", ""));
+        }
         SetState(State.Disconnected, "Not connected");
 
         // Disconnecting can block on a dead network — keep it off the UI thread.
@@ -217,6 +227,7 @@ public partial class TerminalTab : UserControl, ISessionTab
 
     private void EnqueueOutput(ReadOnlySpan<byte> data)
     {
+        _logger?.WriteOutput(data);   // reader thread; the logger locks internally
         lock (_outLock)
         {
             _pending.Write(data);
@@ -364,6 +375,63 @@ public partial class TerminalTab : UserControl, ISessionTab
         }
     }
 
+    // ───────────────────────── session log ─────────────────────────
+
+    private volatile SessionLogger? _logger;
+    private bool _logStoppedByUser;
+
+    public bool IsLogging => _logger is not null;
+    public string? LogPath => _logger?.FilePath;
+
+    /// <summary>Starts writing terminal output to a new file (Settings → Logging decides where and how).</summary>
+    public bool StartLogging(bool showErrors = true)
+    {
+        if (_logger is not null) return true;
+        var s = AppServices.Settings;
+        try
+        {
+            var path = SessionLogger.BuildPath(s.LogFolder, s.LogFileName, AppServices.Profiles.Find(Profile.Id) ?? Profile, DateTime.Now);
+            _logger = new SessionLogger(path, s.LogRaw, s.LogTimestamps);
+            _logStoppedByUser = false;
+            if (_state == State.Connected) _logger.WriteNote($"Logging started — connected to {Profile.Target}");
+        }
+        catch (Exception ex)
+        {
+            if (showErrors) UiHelpers.ShowError(this, "Couldn't start the session log:\n\n" + ex.Message, "Session log");
+            else PostStatus("✖ Couldn't start the session log: " + ex.Message);
+            return false;
+        }
+        UpdateLogButton();
+        return true;
+    }
+
+    public void StopLogging(bool byUser = true)
+    {
+        var logger = _logger;
+        if (logger is null) return;
+        _logger = null;
+        _logStoppedByUser = byUser;
+        try
+        {
+            logger.WriteNote("Logging stopped");
+            logger.Dispose();
+        }
+        catch { /* disk gone — nothing more to do */ }
+        UpdateLogButton();
+    }
+
+    /// <summary>"Log" ↔ "Logging" on the toolbar button, with the file in the tooltip.</summary>
+    private void UpdateLogButton()
+    {
+        var entry = _featureButtons.FirstOrDefault(kv => kv.Key is LogFeature);
+        if (entry.Value is not { } button) return;
+        if (button.Content is StackPanel { Children.Count: > 1 } content && content.Children[1] is TextBlock label)
+            label.Text = IsLogging ? "Logging" : "Log";
+        button.ToolTip = IsLogging ? $"Logging to {LogPath}\nClick for options" : entry.Key.ToolTip;
+        if (IsLogging) button.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0x48, 0x56));   // red, like a recording light
+        else button.ClearValue(ForegroundProperty);
+    }
+
     // ───────────────────────── colour scheme ─────────────────────────
 
     private ColorScheme _scheme;
@@ -421,6 +489,7 @@ public partial class TerminalTab : UserControl, ISessionTab
         AppServices.Settings.Saved -= OnSchemeSourceChanged;
         AppServices.Profiles.Changed -= OnSchemeSourceChanged;
         Disconnect("Closed.");
+        StopLogging(byUser: false);
         _endpoint?.Dispose();
         View.Dispose();
     }

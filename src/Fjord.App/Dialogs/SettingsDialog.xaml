@@ -4,53 +4,75 @@
         xmlns:views="clr-namespace:Fjord.Views"
         Title="Settings" Width="440" SizeToContent="Height" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
-    <StackPanel Margin="20">
-        <TextBlock Text="TERMINAL" Style="{StaticResource SectionHeader}" Margin="0,0,0,4" />
-        <TextBlock Text="Font (CSS font list)" Style="{StaticResource Hint}" />
-        <TextBox x:Name="FontBox" Margin="0,4,0,0" />
-        <Grid Margin="0,10,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="12" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <StackPanel>
-                <TextBlock Text="Font size" Style="{StaticResource Hint}" />
-                <TextBox x:Name="FontSizeBox" Margin="0,4,0,0" />
+    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="760">
+        <StackPanel Margin="20">
+            <TextBlock Text="TERMINAL" Style="{StaticResource SectionHeader}" Margin="0,0,0,4" />
+            <TextBlock Text="Font (CSS font list)" Style="{StaticResource Hint}" />
+            <TextBox x:Name="FontBox" Margin="0,4,0,0" />
+            <Grid Margin="0,10,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Font size" Style="{StaticResource Hint}" />
+                    <TextBox x:Name="FontSizeBox" Margin="0,4,0,0" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Scrollback lines" Style="{StaticResource Hint}" />
+                    <TextBox x:Name="ScrollbackBox" Margin="0,4,0,0" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Text="Colour scheme (sessions can choose their own)" Style="{StaticResource Hint}" Margin="0,10,0,0" />
+            <ComboBox x:Name="SchemeBox" Margin="0,4,0,0" SelectionChanged="SchemeBox_SelectionChanged" />
+            <views:ColorSchemePreview x:Name="SchemePreview" Margin="0,6,0,0" />
+            <CheckBox x:Name="CopyOnSelectBox" Content="Copy on select, right-click pastes (PuTTY style)" Margin="0,12,0,0" />
+            <CheckBox x:Name="CursorBlinkBox" Content="Blinking cursor" Margin="0,6,0,0" />
+
+            <TextBlock Text="SFTP" Style="{StaticResource SectionHeader}" Margin="0,18,0,4" />
+            <CheckBox x:Name="TwoPaneBox" Content="Two panes: this PC on the left, the server on the right" />
+            <TextBlock Style="{StaticResource Hint}" Margin="26,2,0,0"
+                       Text="Drag files between the panes, or use the arrow buttons, to upload and download." />
+
+            <TextBlock Text="SESSION LOGS" Style="{StaticResource SectionHeader}" Margin="0,18,0,4" />
+            <TextBlock Text="Folder" Style="{StaticResource Hint}" />
+            <Grid Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="LogFolderBox" />
+                <Button Grid.Column="1" Content="Browse…" Margin="8,0,0,0" Click="BrowseLogFolder_Click" />
+            </Grid>
+            <TextBlock Text="File name — {session} {host} {user} {date} {time}" Style="{StaticResource Hint}" Margin="0,8,0,0" />
+            <TextBox x:Name="LogFileNameBox" Margin="0,4,0,0" />
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <RadioButton x:Name="LogPlainBox" Content="Plain text" GroupName="logformat" Checked="LogFormat_Changed" />
+                <RadioButton x:Name="LogRawBox" Content="Raw (with colour codes)" GroupName="logformat" Margin="20,0,0,0" Checked="LogFormat_Changed" />
             </StackPanel>
-            <StackPanel Grid.Column="2">
-                <TextBlock Text="Scrollback lines" Style="{StaticResource Hint}" />
-                <TextBox x:Name="ScrollbackBox" Margin="0,4,0,0" />
+            <CheckBox x:Name="LogTimestampsBox" Content="Time in front of every line" Margin="0,6,0,0" />
+            <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
+                       Text="Use the Log button in a terminal, or turn on logging per session in the session editor. Raw logs can be replayed with 'cat' in a terminal." />
+
+            <TextBlock Text="GENERAL" Style="{StaticResource SectionHeader}" Margin="0,18,0,4" />
+            <TextBlock Text="Default username for new sessions" Style="{StaticResource Hint}" />
+            <TextBox x:Name="DefaultUserBox" Margin="0,4,0,0" />
+            <TextBlock Text="Theme (takes effect after restart)" Style="{StaticResource Hint}" Margin="0,10,0,0" />
+            <ComboBox x:Name="ThemeBox" Margin="0,4,0,0" Width="160" HorizontalAlignment="Left">
+                <ComboBoxItem Content="System" />
+                <ComboBoxItem Content="Light" />
+                <ComboBoxItem Content="Dark" />
+            </ComboBox>
+
+            <TextBlock Style="{StaticResource Hint}" Margin="0,16,0,0">
+                Data folder: <Hyperlink Click="OpenDataFolder_Click"><Run x:Name="DataFolderRun" /></Hyperlink>
+            </TextBlock>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Content="Save" IsDefault="True" MinWidth="90" Click="Save_Click" />
+                <Button Content="Cancel" IsCancel="True" MinWidth="90" Margin="8,0,0,0" />
             </StackPanel>
-        </Grid>
-        <TextBlock Text="Colour scheme (sessions can choose their own)" Style="{StaticResource Hint}" Margin="0,10,0,0" />
-        <ComboBox x:Name="SchemeBox" Margin="0,4,0,0" SelectionChanged="SchemeBox_SelectionChanged" />
-        <views:ColorSchemePreview x:Name="SchemePreview" Margin="0,6,0,0" />
-        <CheckBox x:Name="CopyOnSelectBox" Content="Copy on select, right-click pastes (PuTTY style)" Margin="0,12,0,0" />
-        <CheckBox x:Name="CursorBlinkBox" Content="Blinking cursor" Margin="0,6,0,0" />
-
-        <TextBlock Text="SFTP" Style="{StaticResource SectionHeader}" Margin="0,18,0,4" />
-        <CheckBox x:Name="TwoPaneBox" Content="Two panes: this PC on the left, the server on the right" />
-        <TextBlock Style="{StaticResource Hint}" Margin="26,2,0,0"
-                   Text="Drag files between the panes, or use the arrow buttons, to upload and download." />
-
-        <TextBlock Text="GENERAL" Style="{StaticResource SectionHeader}" Margin="0,18,0,4" />
-        <TextBlock Text="Default username for new sessions" Style="{StaticResource Hint}" />
-        <TextBox x:Name="DefaultUserBox" Margin="0,4,0,0" />
-        <TextBlock Text="Theme (takes effect after restart)" Style="{StaticResource Hint}" Margin="0,10,0,0" />
-        <ComboBox x:Name="ThemeBox" Margin="0,4,0,0" Width="160" HorizontalAlignment="Left">
-            <ComboBoxItem Content="System" />
-            <ComboBoxItem Content="Light" />
-            <ComboBoxItem Content="Dark" />
-        </ComboBox>
-
-        <TextBlock Style="{StaticResource Hint}" Margin="0,16,0,0">
-            Data folder: <Hyperlink Click="OpenDataFolder_Click"><Run x:Name="DataFolderRun" /></Hyperlink>
-        </TextBlock>
-
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Save" IsDefault="True" MinWidth="90" Click="Save_Click" />
-            <Button Content="Cancel" IsCancel="True" MinWidth="90" Margin="8,0,0,0" />
         </StackPanel>
-    </StackPanel>
+    </ScrollViewer>
 </Window>

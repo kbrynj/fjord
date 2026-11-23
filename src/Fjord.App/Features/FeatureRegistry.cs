@@ -10,6 +10,7 @@ public static class FeatureRegistry
         new TunnelsFeature(),
         new InstallKeyFeature(),
         new ColorPromptFeature(),
+        new LogFeature(),
         new DuplicateSessionFeature(),
 
         // Sidebar tools

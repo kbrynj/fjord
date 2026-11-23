@@ -63,6 +63,10 @@
             <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
                        Text="Tip: give production servers the red scheme, so you always know where you're typing." />
 
+            <CheckBox x:Name="LogBox" Margin="0,12,0,0" Content="Log this session to a file every time it connects" />
+            <TextBlock Style="{StaticResource Hint}" Margin="26,2,0,0"
+                       Text="Where and how is set in Settings → Session logs. The Log button in a terminal works for any session." />
+
             <Expander x:Name="TunnelsExpander" Margin="0,14,0,0">
                 <Expander.Header>
                     <TextBlock x:Name="TunnelsHeader" Text="Tunnels (port forwarding)" />

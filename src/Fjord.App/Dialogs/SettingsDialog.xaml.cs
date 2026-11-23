@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using Fjord.Core.Logging;
 using Fjord.Core.Storage;
 using Fjord.Services;
 
@@ -21,6 +22,10 @@ public partial class SettingsDialog : Window
         SchemeBox.ItemsSource = ColorSchemes.All.Select(s => s.Name).ToList();
         SchemeBox.SelectedItem = ColorSchemes.Find(_s.ColorScheme).Name;
         TwoPaneBox.IsChecked = _s.SftpTwoPane;
+        LogFolderBox.Text = _s.LogFolder;
+        LogFileNameBox.Text = _s.LogFileName;
+        (_s.LogRaw ? LogRawBox : LogPlainBox).IsChecked = true;
+        LogTimestampsBox.IsChecked = _s.LogTimestamps;
         DefaultUserBox.Text = _s.DefaultUsername;
         ThemeBox.SelectedIndex = _s.Theme switch { "Light" => 1, "Dark" => 2, _ => 0 };
         DataFolderRun.Text = AppPaths.DataDirectory;
@@ -28,6 +33,20 @@ public partial class SettingsDialog : Window
 
     private void SchemeBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         SchemePreview?.Show(ColorSchemes.Find(SchemeBox.SelectedItem as string));
+
+    private void BrowseLogFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = "Folder for session logs" };
+        var current = Environment.ExpandEnvironmentVariables(LogFolderBox.Text);
+        if (System.IO.Directory.Exists(current)) dlg.InitialDirectory = current;
+        if (dlg.ShowDialog(this) == true) LogFolderBox.Text = dlg.FolderName;
+    }
+
+    /// <summary>Timestamps only apply to plain-text logs (raw logs are the exact bytes).</summary>
+    private void LogFormat_Changed(object sender, RoutedEventArgs e)
+    {
+        if (LogTimestampsBox is not null) LogTimestampsBox.IsEnabled = LogPlainBox.IsChecked == true;
+    }
 
     private void OpenDataFolder_Click(object sender, RoutedEventArgs e) =>
         Process.Start(new ProcessStartInfo(AppPaths.DataDirectory) { UseShellExecute = true });
@@ -41,6 +60,10 @@ public partial class SettingsDialog : Window
         _s.CursorBlink = CursorBlinkBox.IsChecked == true;
         _s.ColorScheme = SchemeBox.SelectedItem as string ?? ColorSchemes.DefaultName;
         _s.SftpTwoPane = TwoPaneBox.IsChecked == true;
+        _s.LogFolder = string.IsNullOrWhiteSpace(LogFolderBox.Text) ? new AppSettings().LogFolder : LogFolderBox.Text.Trim();
+        _s.LogFileName = string.IsNullOrWhiteSpace(LogFileNameBox.Text) ? SessionLogger.DefaultFileNamePattern : LogFileNameBox.Text.Trim();
+        _s.LogRaw = LogRawBox.IsChecked == true;
+        _s.LogTimestamps = LogTimestampsBox.IsChecked == true;
         _s.DefaultUsername = DefaultUserBox.Text.Trim();
         _s.Theme = (ThemeBox.SelectedItem as ComboBoxItem)?.Content as string ?? "System";
         _s.Save();

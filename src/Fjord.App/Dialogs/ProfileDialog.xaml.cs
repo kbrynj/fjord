@@ -34,6 +34,8 @@ public partial class ProfileDialog : Window
         SftpPathBox.Text = _profile.SftpStartPath ?? "";
         NotesBox.Text = _profile.Notes ?? "";
 
+        LogBox.IsChecked = _profile.LogSessions;
+
         // First entry = no override; it names the current default so it's clear what that means.
         var schemes = new List<string> { $"Use the default ({ColorSchemes.Find(AppServices.Settings.ColorScheme).Name})" };
         schemes.AddRange(ColorSchemes.All.Select(s => s.Name));
@@ -174,6 +176,7 @@ public partial class ProfileDialog : Window
         _profile.SftpStartPath = NullIfEmpty(SftpPathBox.Text);
         _profile.Notes = NullIfEmpty(NotesBox.Text);
         _profile.ColorScheme = ChosenScheme;
+        _profile.LogSessions = LogBox.IsChecked == true;
         if (_forgetPassword) _profile.ProtectedPassword = null;
         if (string.IsNullOrWhiteSpace(_profile.Name)) _profile.Name = _profile.Target;
 
