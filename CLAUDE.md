@@ -27,6 +27,15 @@ SSH.NET 2026.0.1, xterm.js 6 in WebView2. Personal tool: prefer simple, readable
 - **Tunnels**: rules (`TunnelRule`) are stored per session; `TunnelManager` runs them on one connected `SshClient` and
   turns SSH.NET/socket errors into plain-language messages. `TunnelsPanel` sits *beside* the WebView2 terminal (never
   overlapping it). User-facing wording lives in `TunnelRule.Describe/UsageHint` and `TunnelPresets` — keep it non-technical.
+- **SFTP tab** is split into partials: `SftpTab.xaml.cs` (navigation, transfers, plumbing), `.Editing.cs` (open → watch
+  → upload on save, with server-change check), `.MoveCopy.cs` (cut/copy/paste, `cp -a` over SSH with SFTP streaming
+  fallback), `.DragDrop.cs` (drag-out to Explorer as virtual files). Drag-out uses `VirtualFileDataObject`
+  (raw COM: FileGroupDescriptorW + FileContents streams + IDataObjectAsyncCapability) started with `OleDrag.Run`, not
+  WPF's DataObject — an earlier version that handed Explorer temp CF_HDROP paths and downloaded inside GetData crashed
+  explorer.exe. Drags inside the app are recognised via the static `s_activeDrag`, not a data format. Server-side logic lives
+  in `Fjord.Core/Sftp/RemoteFileOps.cs`.
+- **Permissions**: use `UnixMode.Apply` (SetAttributes). SSH.NET's `ChangePermissions(short)` takes octal digits as a
+  decimal number (755, not 0x1ED) and clears setuid/setgid/sticky.
 - Help never blocks work: guides open in the non-modal `GuideWindow` (`Assets/guide/*.html`); inline hints over popups.
 - Icons are Segoe Fluent Icons code points written as `""` escapes (not raw characters).
 

@@ -1,0 +1,67 @@
+<Window x:Class="Fjord.Dialogs.PermissionsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Permissions" Width="420" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <StackPanel Margin="20">
+        <TextBlock x:Name="TargetText" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+        <TextBlock x:Name="OwnerText" Style="{StaticResource Hint}" Margin="0,2,0,0" />
+
+        <Grid Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="70" />
+                <ColumnDefinition Width="70" />
+                <ColumnDefinition Width="70" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="32" />
+                <RowDefinition Height="32" />
+                <RowDefinition Height="32" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Column="1" Text="Read" Style="{StaticResource SectionHeader}" />
+            <TextBlock Grid.Column="2" Text="Write" Style="{StaticResource SectionHeader}" />
+            <TextBlock Grid.Column="3" x:Name="ExecuteHeader" Text="Run" Style="{StaticResource SectionHeader}" />
+
+            <TextBlock Grid.Row="1" Text="Owner" VerticalAlignment="Center" />
+            <TextBlock Grid.Row="2" Text="Group" VerticalAlignment="Center" />
+            <TextBlock Grid.Row="3" Text="Everyone else" VerticalAlignment="Center" />
+
+            <CheckBox x:Name="UR" Grid.Row="1" Grid.Column="1" Click="Bit_Click" />
+            <CheckBox x:Name="UW" Grid.Row="1" Grid.Column="2" Click="Bit_Click" />
+            <CheckBox x:Name="UX" Grid.Row="1" Grid.Column="3" Click="Bit_Click" />
+            <CheckBox x:Name="GR" Grid.Row="2" Grid.Column="1" Click="Bit_Click" />
+            <CheckBox x:Name="GW" Grid.Row="2" Grid.Column="2" Click="Bit_Click" />
+            <CheckBox x:Name="GX" Grid.Row="2" Grid.Column="3" Click="Bit_Click" />
+            <CheckBox x:Name="OR" Grid.Row="3" Grid.Column="1" Click="Bit_Click" />
+            <CheckBox x:Name="OW" Grid.Row="3" Grid.Column="2" Click="Bit_Click" />
+            <CheckBox x:Name="OX" Grid.Row="3" Grid.Column="3" Click="Bit_Click" />
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+            <TextBlock Text="As a number" VerticalAlignment="Center" />
+            <TextBox x:Name="OctalBox" Width="70" Margin="10,0,0,0" FontFamily="Cascadia Mono, Consolas"
+                     TextChanged="OctalBox_TextChanged" ToolTip="Like chmod: 644 = files, 755 = folders and programs" />
+            <TextBlock x:Name="SymbolicText" Margin="12,0,0,0" VerticalAlignment="Center" FontFamily="Cascadia Mono, Consolas"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+
+        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0">
+            Common choices: <Hyperlink Click="Preset_Click" Tag="644">644</Hyperlink> normal file ·
+            <Hyperlink Click="Preset_Click" Tag="755">755</Hyperlink> folder or program ·
+            <Hyperlink Click="Preset_Click" Tag="600">600</Hyperlink> private (keys, passwords)
+        </TextBlock>
+
+        <CheckBox x:Name="RecursiveCheck" Margin="0,14,0,0" Visibility="Collapsed"
+                  Content="Also apply to everything inside the folder(s)" />
+        <TextBlock x:Name="RecursiveHint" Style="{StaticResource Hint}" Margin="26,2,0,0" Visibility="Collapsed"
+                   Text="Sub-folders keep 'Run' wherever 'Read' is on, so they can still be opened." />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Apply" IsDefault="True" MinWidth="90" Click="Apply_Click" />
+            <Button Content="Cancel" IsCancel="True" MinWidth="90" Margin="8,0,0,0" />
+        </StackPanel>
+    </StackPanel>
+</Window>

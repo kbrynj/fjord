@@ -19,7 +19,9 @@
         <DataGrid x:Name="FileGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
                   HeadersVisibility="Column" GridLinesVisibility="None" SelectionMode="Extended"
                   CanUserResizeRows="False" AllowDrop="True" Margin="8,0,8,0"
-                  MouseDoubleClick="Grid_MouseDoubleClick" KeyDown="Grid_KeyDown"
+                  MouseDoubleClick="Grid_MouseDoubleClick" KeyDown="Grid_KeyDown" PreviewKeyDown="Grid_PreviewKeyDown"
+                  PreviewMouseLeftButtonDown="Grid_PreviewMouseLeftButtonDown" PreviewMouseLeftButtonUp="Grid_PreviewMouseLeftButtonUp"
+                  PreviewMouseMove="Grid_PreviewMouseMove"
                   DragOver="Grid_DragOver" Drop="Grid_Drop">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Name" Width="*" SortMemberPath="SortKey" CanUserSort="True">
@@ -39,13 +41,20 @@
             </DataGrid.Columns>
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Open" Click="Open_Click" />
+                    <MenuItem Header="Open" InputGestureText="Enter" Click="Open_Click" />
+                    <MenuItem Header="Open with…" Click="OpenWith_Click" />
                     <MenuItem Header="Download…" Click="Download_Click" />
                     <Separator />
-                    <MenuItem Header="Rename…" Click="Rename_Click" />
-                    <MenuItem Header="Delete" Click="Delete_Click" />
+                    <MenuItem Header="Cut" InputGestureText="Ctrl+X" Click="Cut_Click" />
+                    <MenuItem Header="Copy" InputGestureText="Ctrl+C" Click="Copy_Click" />
+                    <MenuItem Header="Paste" InputGestureText="Ctrl+V" Click="Paste_Click" />
+                    <Separator />
+                    <MenuItem Header="Rename or move…" InputGestureText="F2" Click="Rename_Click" />
+                    <MenuItem Header="Permissions…" Click="Permissions_Click" />
+                    <MenuItem Header="Delete" InputGestureText="Del" Click="Delete_Click" />
                     <Separator />
                     <MenuItem Header="Copy path" Click="CopyPath_Click" />
+                    <MenuItem Header="New file…" Click="NewFile_Click" />
                     <MenuItem Header="New folder…" Click="NewFolder_Click" />
                     <MenuItem Header="Upload files…" Click="Upload_Click" />
                 </ContextMenu>
@@ -56,8 +65,16 @@
         <DockPanel Grid.Row="2" Margin="10,6,10,8">
             <Button x:Name="CancelButton" DockPanel.Dock="Right" Content="Cancel" Visibility="Collapsed" Click="Cancel_Click" Margin="8,0,0,0" />
             <ProgressBar x:Name="Progress" DockPanel.Dock="Right" Width="200" Height="6" Visibility="Collapsed" VerticalAlignment="Center" />
+            <!-- Files open in a Windows editor; saving them uploads automatically. -->
+            <Border x:Name="EditingBadge" DockPanel.Dock="Right" Visibility="Collapsed" Margin="8,0,0,0" Padding="8,2"
+                    CornerRadius="4" Background="{DynamicResource SubtleFillColorSecondaryBrush}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE70F;" Style="{StaticResource Glyph}" FontSize="12" />
+                    <TextBlock x:Name="EditingText" Margin="6,0,0,0" FontSize="12" VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
             <TextBlock x:Name="StatusText" Style="{StaticResource Hint}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
-                       Text="Tip: drag files from Explorer here to upload." />
+                       Text="Tip: drag files in from Explorer to upload, or out to Explorer to download." />
         </DockPanel>
     </Grid>
 </UserControl>

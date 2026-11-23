@@ -31,9 +31,16 @@ keys instead of passwords. It uses the Windows 11 Fluent look, and the terminal 
 - Tabs: **Ctrl+Tab** to switch, **Ctrl+Shift+T** for another terminal on the same server, **Ctrl+Shift+W** to close.
 - **Ctrl + / − / 0** to change font size. Press **Enter** in a dropped session to reconnect.
 
-### SFTP browser
-- Browse, upload (button or drag files and folders from Explorer), download, rename, delete, new folder.
-- Open a remote file directly in its Windows app.
+### SFTP file manager
+- **Edit remote files in any Windows app** — open `nginx.conf` in Notepad++ or VS Code, and every save is uploaded
+  back. If someone changed the file on the server meanwhile, you're asked before it's overwritten.
+- **Drag and drop both ways** — drag files and folders in from Explorer to upload, or out to Explorer / the desktop
+  to download. Drag onto a folder in the list to move (hold Ctrl to copy), or onto another server's tab to copy across.
+- **Cut, copy and paste** on the server (Ctrl+X / C / V), also between tabs of the same server. Copies run `cp` on the
+  server, so big files don't travel through your PC. Ctrl+V with files copied in Explorer uploads them.
+- **Rename or move** (F2) — type a new name, or a path like `../archive/` to move it.
+- **Permissions** — checkboxes or a number (644, 755…), optionally for everything inside a folder.
+- New file, new folder, delete, download, copy path.
 - Opens from a terminal tab using **the same login** — no second password prompt.
 
 ### Tunnels (port forwarding)
@@ -98,7 +105,8 @@ Remembered passwords in `profiles.json` are DPAPI-encrypted and only decrypt for
 
 ```
 src/
-  Fjord.Core/     UI-free logic, unit-testable: sessions, key generation, SSH connection + host keys, tunnels
+  Fjord.Core/     UI-free logic, unit-testable: sessions, key generation, SSH connection + host keys, tunnels,
+                  remote file operations (copy, move, permissions)
   Fjord.App/      WPF app: main window, terminal / SFTP / tunnel views, dialogs, pluggable features
     Assets/       xterm.js page + bridge, built-in guides (plain HTML — edit freely)
 ```
@@ -138,7 +146,7 @@ See [CLAUDE.md](CLAUDE.md) for the architecture rules (threading, persistence, t
 ### Roadmap ideas
 
 Snippets / macros · jump hosts · session logging to file · colour schemes · Pageant / ssh-agent support ·
-two-pane SFTP with a local side.
+two-pane SFTP with a local side · owner/group names instead of ids.
 
 ## License
 
