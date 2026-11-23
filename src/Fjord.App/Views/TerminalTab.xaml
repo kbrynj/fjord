@@ -24,7 +24,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Border Background="#0C0C0C">
+            <Border x:Name="TermBorder" Background="#0C0C0C">
                 <wv2:WebView2 x:Name="View" />
             </Border>
             <!-- Beside the terminal, never on top of it (WebView2 can't be overlapped by WPF content). -->

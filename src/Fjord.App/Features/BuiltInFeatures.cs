@@ -109,6 +109,73 @@ public sealed class InstallKeyFeature : IAppFeature
     }
 }
 
+/// <summary>Adds (or removes) a coloured user@host:path prompt in the login user's shell start-up file.</summary>
+public sealed class ColorPromptFeature : IAppFeature
+{
+    public string Title => "Colour prompt";
+    public string Glyph => "";
+    public FeatureScope Scope => FeatureScope.Session;
+    public string? ToolTip => "Colour the user@host:path prompt on this server, using the terminal's colour scheme (or remove it again)";
+
+    public async void Execute(FeatureContext ctx)
+    {
+        var tab = ctx.Terminal;
+        if (tab?.Client is not { } client)
+        {
+            MessageBox.Show(ctx.Shell, "Connect first, then try again.", Title, MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        IReadOnlyList<string> installed;
+        PromptShellInfo shell;
+        try
+        {
+            (installed, shell) = await Task.Run(() => (ColorPromptInstaller.FindInstalled(client), ColorPromptInstaller.Detect(client)));
+        }
+        catch (Exception ex) { UiHelpers.ShowError(ctx.Shell, ex.Message, Title); return; }
+
+        var who = $"{tab.Profile.Username} on {tab.Profile.Host}";
+        PromptResult result;
+        if (installed.Count > 0)
+        {
+            if (MessageBox.Show(ctx.Shell, $"Fjord's coloured prompt is set up for {who} (in {string.Join(", ", installed)}).\n\nRemove it?",
+                    Title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+            result = await Task.Run(() => ColorPromptInstaller.Remove(client));
+            Report(ctx, result, applyNow: false);
+            return;
+        }
+
+        if (shell.Kind == PromptShell.Unsupported)
+        {
+            MessageBox.Show(ctx.Shell, shell.Problem, Title, MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        if (MessageBox.Show(ctx.Shell,
+                $"Add a coloured prompt for {who}?\n\n" +
+                $"Fjord adds a small, clearly marked block to {shell.RcFile}: user@host in green (red when you're root) and the folder " +
+                "in blue — the colours of your terminal colour scheme.\n\n" +
+                "It replaces this account's own prompt on this server. Click Colour prompt again any time to remove it.",
+                Title, MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
+
+        result = await Task.Run(() => ColorPromptInstaller.Install(client, shell));
+        Report(ctx, result, applyNow: true);
+    }
+
+    private void Report(FeatureContext ctx, PromptResult result, bool applyNow)
+    {
+        if (!result.Success) { UiHelpers.ShowError(ctx.Shell, result.Message, Title); return; }
+        if (applyNow && result.ReloadCommand is { } reload && ctx.Terminal?.Client is not null)
+        {
+            if (MessageBox.Show(ctx.Shell, result.Message + $"\n\nUse it in this terminal now? (Fjord types: {reload})",
+                    Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                ctx.Terminal.Send(" " + reload + "\r");   // leading space: kept out of shell history where supported
+            return;
+        }
+        MessageBox.Show(ctx.Shell, result.Message, Title, MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+}
+
 public sealed class DuplicateSessionFeature : IAppFeature
 {
     public string Title => "";

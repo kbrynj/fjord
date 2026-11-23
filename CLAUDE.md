@@ -36,6 +36,11 @@ SSH.NET 2026.0.1, xterm.js 6 in WebView2. Personal tool: prefer simple, readable
   in `Fjord.Core/Sftp/RemoteFileOps.cs`.
 - **Permissions**: use `UnixMode.Apply` (SetAttributes). SSH.NET's `ChangePermissions(short)` takes octal digits as a
   decimal number (755, not 0x1ED) and clears setuid/setgid/sticky.
+- **Colour schemes** live in `Services/ColorSchemes.cs` (one line per scheme); `ColorSchemes.For(profile)` resolves the
+  session override or the Settings default. Terminals re-apply on `AppSettings.Saved` / `ProfileStore.Changed`.
+  **Colour prompt** (`Core/Ssh/ColorPromptInstaller.cs`) edits the server's rc file inside `# >>> Fjord colour prompt >>>`
+  markers; tested on Debian bash (root + login-file fallback), zsh, Alpine BusyBox ash, fish (refused). Every
+  command it runs has a timeout, because start-up files can wait for input.
 - Help never blocks work: guides open in the non-modal `GuideWindow` (`Assets/guide/*.html`); inline hints over popups.
 - Icons are Segoe Fluent Icons code points written as `""` escapes (not raw characters).
 

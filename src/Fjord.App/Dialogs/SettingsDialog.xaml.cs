@@ -18,11 +18,16 @@ public partial class SettingsDialog : Window
         ScrollbackBox.Text = _s.Scrollback.ToString();
         CopyOnSelectBox.IsChecked = _s.CopyOnSelect;
         CursorBlinkBox.IsChecked = _s.CursorBlink;
+        SchemeBox.ItemsSource = ColorSchemes.All.Select(s => s.Name).ToList();
+        SchemeBox.SelectedItem = ColorSchemes.Find(_s.ColorScheme).Name;
         TwoPaneBox.IsChecked = _s.SftpTwoPane;
         DefaultUserBox.Text = _s.DefaultUsername;
         ThemeBox.SelectedIndex = _s.Theme switch { "Light" => 1, "Dark" => 2, _ => 0 };
         DataFolderRun.Text = AppPaths.DataDirectory;
     }
+
+    private void SchemeBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        SchemePreview?.Show(ColorSchemes.Find(SchemeBox.SelectedItem as string));
 
     private void OpenDataFolder_Click(object sender, RoutedEventArgs e) =>
         Process.Start(new ProcessStartInfo(AppPaths.DataDirectory) { UseShellExecute = true });
@@ -34,6 +39,7 @@ public partial class SettingsDialog : Window
         _s.Scrollback = int.TryParse(ScrollbackBox.Text, out var sb) ? Math.Clamp(sb, 100, 200_000) : 10000;
         _s.CopyOnSelect = CopyOnSelectBox.IsChecked == true;
         _s.CursorBlink = CursorBlinkBox.IsChecked == true;
+        _s.ColorScheme = SchemeBox.SelectedItem as string ?? ColorSchemes.DefaultName;
         _s.SftpTwoPane = TwoPaneBox.IsChecked == true;
         _s.DefaultUsername = DefaultUserBox.Text.Trim();
         _s.Theme = (ThemeBox.SelectedItem as ComboBoxItem)?.Content as string ?? "System";

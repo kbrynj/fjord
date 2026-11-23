@@ -10,6 +10,8 @@ public sealed class AppSettings
     public int Scrollback { get; set; } = 10000;
     public bool CopyOnSelect { get; set; } = true;
     public bool CursorBlink { get; set; } = true;
+    /// <summary>Default terminal colour scheme (a name from <see cref="ColorSchemes"/>). Sessions can override it.</summary>
+    public string ColorScheme { get; set; } = ColorSchemes.DefaultName;
     /// <summary>System, Light or Dark (window chrome; the terminal itself stays dark).</summary>
     public string Theme { get; set; } = "System";
     public string DefaultUsername { get; set; } = "";

@@ -30,6 +30,12 @@ keys instead of passwords. It uses the Windows 11 Fluent look, and the terminal 
 - PuTTY-style clipboard: **select to copy, right-click to paste** (or Ctrl+Shift+C / Ctrl+Shift+V).
 - Tabs: **Ctrl+Tab** to switch, **Ctrl+Shift+T** for another terminal on the same server, **Ctrl+Shift+W** to close.
 - **Ctrl + / − / 0** to change font size. Press **Enter** in a dropped session to reconnect.
+- **Colour schemes** — Campbell, One Half Dark/Light, Solarized Dark/Light, Tango, Gruvbox, Nord, Dracula, plus
+  *Production (dark red)* and *Test (dark green)*. Pick a default in Settings and override it per session, so
+  production servers always look different. Open terminals switch instantly.
+- **Colour prompt** — many servers (root on Debian/Ubuntu, Alpine, minimal images) show a plain `user@host:path`.
+  One click adds a small, marked block to your shell's start-up file (bash, zsh or BusyBox sh) that colours it with
+  your scheme's colours — red when you're root. Click again to remove it.
 
 ### SFTP file manager
 - **Edit remote files in any Windows app** — open `nginx.conf` in Notepad++ or VS Code, and every save is uploaded
@@ -148,7 +154,7 @@ See [CLAUDE.md](CLAUDE.md) for the architecture rules (threading, persistence, t
 
 ### Roadmap ideas
 
-Snippets / macros · jump hosts · session logging to file · colour schemes · Pageant / ssh-agent support ·
+Snippets / macros · jump hosts · session logging to file · Pageant / ssh-agent support ·
 owner/group names instead of ids.
 
 ## License

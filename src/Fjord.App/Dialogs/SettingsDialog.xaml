@@ -1,6 +1,7 @@
 <Window x:Class="Fjord.Dialogs.SettingsDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Fjord.Views"
         Title="Settings" Width="440" SizeToContent="Height" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
     <StackPanel Margin="20">
@@ -22,6 +23,9 @@
                 <TextBox x:Name="ScrollbackBox" Margin="0,4,0,0" />
             </StackPanel>
         </Grid>
+        <TextBlock Text="Colour scheme (sessions can choose their own)" Style="{StaticResource Hint}" Margin="0,10,0,0" />
+        <ComboBox x:Name="SchemeBox" Margin="0,4,0,0" SelectionChanged="SchemeBox_SelectionChanged" />
+        <views:ColorSchemePreview x:Name="SchemePreview" Margin="0,6,0,0" />
         <CheckBox x:Name="CopyOnSelectBox" Content="Copy on select, right-click pastes (PuTTY style)" Margin="0,12,0,0" />
         <CheckBox x:Name="CursorBlinkBox" Content="Blinking cursor" Margin="0,6,0,0" />
 

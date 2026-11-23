@@ -31,6 +31,8 @@ public sealed class SessionProfile
     /// <summary>Remote folder the SFTP browser opens in. Empty = home directory.</summary>
     public string? SftpStartPath { get; set; }
     public string? Notes { get; set; }
+    /// <summary>Terminal colour scheme for this session (e.g. a red one for production). Null = the default from Settings.</summary>
+    public string? ColorScheme { get; set; }
     public DateTime? LastConnected { get; set; }
     /// <summary>Port forwarding rules ("tunnels") for this session.</summary>
     public List<TunnelRule> Tunnels { get; set; } = [];

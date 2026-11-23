@@ -57,7 +57,8 @@ public partial class TerminalTab : UserControl, ISessionTab
         _shell = shell;
         Profile = profile;
         Title = profile.DisplayName;
-        View.DefaultBackgroundColor = System.Drawing.Color.FromArgb(12, 12, 12);
+        _scheme = ColorSchemes.For(profile);
+        ApplySchemeBackground();
 
         foreach (var feature in FeatureRegistry.SessionFeatures)
         {
@@ -74,6 +75,8 @@ public partial class TerminalTab : UserControl, ISessionTab
         ActionsPanel.Children.Add(UiHelpers.ToolbarButton("\uE72C", null, "Reconnect", (_, _) => _ = ReconnectAsync()));
         ActionsPanel.Children.Add(UiHelpers.ToolbarButton("\uE7E8", null, "Disconnect", (_, _) => Disconnect("Disconnected.")));
 
+        AppServices.Settings.Saved += OnSchemeSourceChanged;
+        AppServices.Profiles.Changed += OnSchemeSourceChanged;
         Loaded += OnFirstLoaded;
     }
 
@@ -89,7 +92,7 @@ public partial class TerminalTab : UserControl, ISessionTab
             var cfg = JsonSerializer.Serialize(new
             {
                 fontFamily = s.FontFamily, fontSize = s.FontSize, scrollback = s.Scrollback,
-                copyOnSelect = s.CopyOnSelect, cursorBlink = s.CursorBlink,
+                copyOnSelect = s.CopyOnSelect, cursorBlink = s.CursorBlink, theme = _scheme.ToXtermTheme(),
             });
             var cfgParam = Uri.EscapeDataString(Convert.ToBase64String(Encoding.UTF8.GetBytes(cfg)));
             View.CoreWebView2.Navigate($"https://{AppServices.AssetsHost}/terminal/terminal.html?cfg={cfgParam}");
@@ -361,6 +364,30 @@ public partial class TerminalTab : UserControl, ISessionTab
         }
     }
 
+    // ───────────────────────── colour scheme ─────────────────────────
+
+    private ColorScheme _scheme;
+
+    /// <summary>Settings or a saved session changed: switch colours live if this terminal's scheme changed.</summary>
+    private void OnSchemeSourceChanged(object? sender, EventArgs e) => Dispatcher.InvokeAsync(() =>
+    {
+        if (_closed) return;
+        // The session editor saves a new copy of the profile, so look up the saved one by id.
+        var scheme = ColorSchemes.For(AppServices.Profiles.Find(Profile.Id) ?? Profile);
+        if (scheme == _scheme) return;
+        _scheme = scheme;
+        ApplySchemeBackground();
+        Post(new { t = "options", theme = scheme.ToXtermTheme() });
+    });
+
+    /// <summary>The WebView's own background shows while it loads and around the terminal — match the scheme.</summary>
+    private void ApplySchemeBackground()
+    {
+        var c = ColorScheme.ToColor(_scheme.Background);
+        View.DefaultBackgroundColor = System.Drawing.Color.FromArgb(c.R, c.G, c.B);
+        TermBorder.Background = new SolidColorBrush(c);
+    }
+
     // ───────────────────────── tunnels panel ─────────────────────────
 
     public bool TunnelsVisible => Tunnels.Visibility == Visibility.Visible;
@@ -391,6 +418,8 @@ public partial class TerminalTab : UserControl, ISessionTab
     {
         if (_closed) return;
         _closed = true;
+        AppServices.Settings.Saved -= OnSchemeSourceChanged;
+        AppServices.Profiles.Changed -= OnSchemeSourceChanged;
         Disconnect("Closed.");
         _endpoint?.Dispose();
         View.Dispose();

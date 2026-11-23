@@ -9,6 +9,7 @@ public static class FeatureRegistry
         new OpenSftpFeature(),
         new TunnelsFeature(),
         new InstallKeyFeature(),
+        new ColorPromptFeature(),
         new DuplicateSessionFeature(),
 
         // Sidebar tools

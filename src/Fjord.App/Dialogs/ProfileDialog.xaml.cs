@@ -34,6 +34,12 @@ public partial class ProfileDialog : Window
         SftpPathBox.Text = _profile.SftpStartPath ?? "";
         NotesBox.Text = _profile.Notes ?? "";
 
+        // First entry = no override; it names the current default so it's clear what that means.
+        var schemes = new List<string> { $"Use the default ({ColorSchemes.Find(AppServices.Settings.ColorScheme).Name})" };
+        schemes.AddRange(ColorSchemes.All.Select(s => s.Name));
+        SchemeBox.ItemsSource = schemes;
+        SchemeBox.SelectedIndex = string.IsNullOrWhiteSpace(_profile.ColorScheme) ? 0 : Math.Max(0, schemes.IndexOf(ColorSchemes.Find(_profile.ColorScheme).Name));
+
         (_profile.Auth == AuthMethod.PrivateKey ? AuthKey : AuthPassword).IsChecked = true;
         SavedPasswordPanel.Visibility = _profile.ProtectedPassword is null ? Visibility.Collapsed : Visibility.Visible;
         UpdateKeyPanel();
@@ -43,6 +49,12 @@ public partial class ProfileDialog : Window
     }
 
     private void Auth_Changed(object sender, RoutedEventArgs e) => UpdateKeyPanel();
+
+    /// <summary>Null when "Use the default" is selected.</summary>
+    private string? ChosenScheme => SchemeBox.SelectedIndex > 0 ? SchemeBox.SelectedItem as string : null;
+
+    private void SchemeBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) =>
+        SchemePreview?.Show(ColorSchemes.Find(ChosenScheme ?? AppServices.Settings.ColorScheme));
 
     private void UpdateKeyPanel()
     {
@@ -161,6 +173,7 @@ public partial class ProfileDialog : Window
         _profile.StartupCommand = NullIfEmpty(StartupBox.Text);
         _profile.SftpStartPath = NullIfEmpty(SftpPathBox.Text);
         _profile.Notes = NullIfEmpty(NotesBox.Text);
+        _profile.ColorScheme = ChosenScheme;
         if (_forgetPassword) _profile.ProtectedPassword = null;
         if (string.IsNullOrWhiteSpace(_profile.Name)) _profile.Name = _profile.Target;
 

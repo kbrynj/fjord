@@ -1,5 +1,5 @@
 // Bridge between xterm.js and the C# host (TerminalTab.xaml.cs).
-// Host -> page:  { t: 'data', b: <base64 bytes> } | { t: 'focus' } | { t: 'status', text } | { t: 'options', ... }
+// Host -> page:  { t: 'data', b: <base64 bytes> } | { t: 'focus' } | { t: 'status', text } | { t: 'options', fontFamily?, fontSize?, theme? }
 // Page -> host:  { t: 'ready'|'resize', cols, rows } | { t: 'input', d } | { t: 'binary', d }
 //                { t: 'copy', text } | { t: 'paste' } | { t: 'open', uri } | { t: 'hotkey', k }
 (() => {
@@ -10,12 +10,23 @@
   let cfg = {};
   try { cfg = JSON.parse(atob(new URLSearchParams(location.search).get('cfg') || '') || '{}'); } catch { }
 
-  const theme = {
+  // Colour scheme comes from the host (Services/ColorSchemes.cs); Campbell is the fallback.
+  const theme = cfg.theme || {
     background: '#0c0c0c', foreground: '#cccccc', cursor: '#ffffff', selectionBackground: '#264f78',
     black: '#0c0c0c', red: '#c50f1f', green: '#13a10e', yellow: '#c19c00', blue: '#0037da', magenta: '#881798',
     cyan: '#3a96dd', white: '#cccccc', brightBlack: '#767676', brightRed: '#e74856', brightGreen: '#16c60c',
     brightYellow: '#f9f1a5', brightBlue: '#3b78ff', brightMagenta: '#b4009e', brightCyan: '#61d6d6', brightWhite: '#f2f2f2',
   };
+
+  // The page around the terminal (padding, scrollbar) follows the scheme too.
+  function applyChrome(t) {
+    document.body.style.background = t.background;
+    const hex = t.background.replace('#', '');
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.substr(i, 2), 16));
+    const light = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.5;
+    document.documentElement.style.setProperty('--thumb', light ? '#00000030' : '#ffffff30');
+  }
+  applyChrome(theme);
 
   const term = new Terminal({
     fontFamily: cfg.fontFamily || "'Cascadia Mono', Consolas, monospace",
@@ -100,6 +111,7 @@
       case 'options':
         if (m.fontFamily) term.options.fontFamily = m.fontFamily;
         if (m.fontSize) term.options.fontSize = m.fontSize;
+        if (m.theme) { term.options.theme = m.theme; applyChrome(m.theme); }
         doFit();
         break;
     }
