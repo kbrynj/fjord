@@ -1,0 +1,38 @@
+# Fjord — notes for Claude Code
+
+Windows SSH client (PuTTY replacement). .NET 10, WPF with the built-in Fluent theme (`ThemeMode`, set in `App.xaml.cs`),
+SSH.NET 2026.0.1, xterm.js 6 in WebView2. Personal tool: prefer simple, readable code over frameworks
+(no MVVM toolkit, no DI container — code-behind + `AppServices` singletons is intentional).
+
+## Build
+
+`dotnet build Fjord.sln` (Windows only for Fjord.App; Fjord.Core builds anywhere).
+
+## Architecture rules
+
+- **Fjord.Core has no UI references.** Anything needing the user (passwords, host key confirmation) goes through
+  `ISessionPrompts`; secrets through `ISecretProtector`. Keep it that way so Core stays testable.
+- **All connections go through `SshEndpoint`.** It prompts once, then reuses the credentials for SFTP / extra channels.
+  Never construct `SshClient`/`SftpClient` directly in the UI — host-key verification lives in the endpoint.
+- **Tabs**: `ISessionTab` UserControls hosted in `MainWindow.ContentHost` and shown/hidden (not inside the TabControl's
+  content), because removing a WebView2 from the visual tree tears it down.
+- **Features**: new commands implement `IAppFeature` and are listed in `FeatureRegistry`. `Session` scope = terminal
+  toolbar, `Global` = sidebar tools.
+- **Terminal bridge**: `Assets/terminal/terminal.js` ⇄ `TerminalTab.OnWebMessage`. Messages are JSON `{ t: "...", ... }`;
+  the protocol is documented at the top of terminal.js. Output is base64 bytes (xterm decodes UTF-8 itself).
+- **Threading**: SSH.NET calls are blocking → `Task.Run`. Prompts are marshalled with `Dispatcher.Invoke` in `UiPrompts`.
+  SFTP operations are serialized with a semaphore in `SftpTab.RunAsync`.
+- **Persistence**: JSON via `JsonStore` in `%APPDATA%\Fjord`. Add properties with defaults; never rename existing ones
+  without migration (users' profiles.json would lose data).
+- **Tunnels**: rules (`TunnelRule`) are stored per session; `TunnelManager` runs them on one connected `SshClient` and
+  turns SSH.NET/socket errors into plain-language messages. `TunnelsPanel` sits *beside* the WebView2 terminal (never
+  overlapping it). User-facing wording lives in `TunnelRule.Describe/UsageHint` and `TunnelPresets` — keep it non-technical.
+- Help never blocks work: guides open in the non-modal `GuideWindow` (`Assets/guide/*.html`); inline hints over popups.
+- Icons are Segoe Fluent Icons code points written as `""` escapes (not raw characters).
+
+## Verified behaviour
+
+- `OpenSshKeyGenerator` output (Ed25519 and RSA-4096, with and without passphrase) was checked with OpenSSH 9.6:
+  `ssh-keygen -y` derives the same public key and `ssh-keygen -Y sign/verify` works with the private key.
+  If you change the key code, re-run that check.
+- `BcryptPbkdf.cs` is vendored from SSH.NET (ISC licence) — don't modify.

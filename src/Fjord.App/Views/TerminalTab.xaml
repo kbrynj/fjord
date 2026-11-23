@@ -1,0 +1,34 @@
+<UserControl x:Class="Fjord.Views.TerminalTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Fjord.Views"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Session toolbar: status on the left, actions (from FeatureRegistry) on the right -->
+        <DockPanel Margin="8,4,6,4" LastChildFill="True">
+            <StackPanel x:Name="ActionsPanel" DockPanel.Dock="Right" Orientation="Horizontal" />
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="Gray" VerticalAlignment="Center" />
+                <TextBlock x:Name="StatusText" Margin="8,0,0,0" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" Style="{StaticResource Hint}" TextWrapping="NoWrap" />
+            </StackPanel>
+        </DockPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Background="#0C0C0C">
+                <wv2:WebView2 x:Name="View" />
+            </Border>
+            <!-- Beside the terminal, never on top of it (WebView2 can't be overlapped by WPF content). -->
+            <local:TunnelsPanel x:Name="Tunnels" Grid.Column="1" Visibility="Collapsed" />
+        </Grid>
+    </Grid>
+</UserControl>

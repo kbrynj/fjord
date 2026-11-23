@@ -1,0 +1,90 @@
+<UserControl x:Class="Fjord.Views.TunnelsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="340">
+    <Border BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+        <DockPanel Margin="12,8,10,10">
+            <!-- Header -->
+            <DockPanel DockPanel.Dock="Top">
+                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="11"
+                        ToolTip="Hide panel" Click="Hide_Click" />
+                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE897;"
+                        ToolTip="What are tunnels?" Click="HelpToggle_Click" />
+                <TextBlock Text="Tunnels" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </DockPanel>
+
+            <Button DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Margin="0,10,0,0" Click="Add_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE710;" Style="{StaticResource Glyph}" Margin="0,0,8,0" />
+                    <TextBlock Text="Add tunnel" />
+                </StackPanel>
+            </Button>
+            <TextBlock x:Name="NotSavedHint" DockPanel.Dock="Bottom" Style="{StaticResource Hint}" Margin="0,8,0,0" Visibility="Collapsed"
+                       Text="This is a quick-connect session, so tunnels aren't saved. Save the session to keep them." />
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,6,0,0">
+                <StackPanel>
+                    <!-- Built-in explanation: shown when there are no tunnels, or via the ? button -->
+                    <StackPanel x:Name="HelpPanel" Margin="0,4,0,8">
+                        <TextBlock TextWrapping="Wrap">
+                            A tunnel makes something that only the server can reach available on <Bold>this PC</Bold> —
+                            through your SSH connection. Encrypted, and no firewall changes needed.
+                        </TextBlock>
+                        <TextBlock Text="TRY ONE" Style="{StaticResource SectionHeader}" Margin="0,12,0,2" />
+                        <ItemsControl x:Name="QuickPresets">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="0,2"
+                                            Background="Transparent" BorderThickness="0" Padding="6,5" Click="QuickPreset_Click">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="26" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Glyph}" Style="{StaticResource Glyph}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource Hint}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0">
+                            <Hyperlink Click="Guide_Click">Read the guide (examples, troubleshooting)</Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Tunnels for this session -->
+                    <ItemsControl x:Name="RowList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8" Padding="10,8" CornerRadius="6" BorderThickness="1"
+                                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <Ellipse DockPanel.Dock="Left" Width="8" Height="8" Fill="{Binding StatusBrush}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding StatusText}" Style="{StaticResource Hint}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Rule.DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                        </DockPanel>
+                                        <TextBlock Text="{Binding Rule.ShortForm}" FontFamily="Cascadia Mono, Consolas" FontSize="11" Margin="16,2,0,0" Opacity="0.8" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Message}" Foreground="{Binding MessageBrush}" FontSize="12" TextWrapping="Wrap" Margin="16,4,0,0" />
+                                        <StackPanel Orientation="Horizontal" Margin="10,6,0,0">
+                                            <Button Content="{Binding OpenLabel}" Visibility="{Binding OpenVisibility}" Click="Open_Click" Padding="10,3" Margin="0,0,6,0" />
+                                            <Button Content="{Binding ToggleLabel}" Click="Toggle_Click" Padding="10,3" Margin="0,0,6,0" />
+                                            <Button Style="{StaticResource IconButton}" Content="&#xE70F;" ToolTip="Edit" Click="Edit_Click" />
+                                            <Button Style="{StaticResource IconButton}" Content="&#xE8C8;" ToolTip="Copy address" Click="Copy_Click" />
+                                            <Button Style="{StaticResource IconButton}" Content="&#xE74D;" ToolTip="Remove" Click="Remove_Click" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

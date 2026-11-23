@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Logging in with SSH keys</title>
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+<main>
+<h1>Logging in with SSH keys</h1>
+<p class="lead">Swap passwords for a key pair: faster logins, nothing to type, and nothing for an attacker to guess.</p>
+
+<div class="card">
+  <b>The idea in one paragraph.</b> A key pair is two files. The <b>private key</b> (<code>id_ed25519</code>) stays on your PC — never share it.
+  The <b>public key</b> (<code>id_ed25519.pub</code>) is one line of text that you put on every server you want to log in to, in
+  <code>~/.ssh/authorized_keys</code>. When you connect, the server checks that you hold the private key that matches — no password is sent.
+</div>
+
+<h2><span class="n">1</span>Create a key</h2>
+<p>In Fjord: <span class="ui">Key generator</span> in the sidebar. Choose <b>Ed25519</b>, optionally set a passphrase, and save to the
+suggested location <code>C:\Users\you\.ssh\id_ed25519</code>. That folder is also where Windows' own <code>ssh.exe</code>, Git and VS Code look for keys.</p>
+<p class="muted">Same thing from a terminal (Windows PowerShell, Linux or macOS):</p>
+<pre><code>ssh-keygen -t ed25519 -C "kim@laptop"</code></pre>
+<p><b>Passphrase or not?</b> A passphrase encrypts the private key file, so a stolen copy is useless. Fjord asks for it once per session.
+Without a passphrase, anyone who copies the file can log in as you.</p>
+
+<h2><span class="n">2</span>Put the public key on the server</h2>
+<h3>Easiest: let Fjord do it</h3>
+<ol>
+  <li>Connect to the server the usual way (with your password).</li>
+  <li>Click <span class="ui">Install key</span> in the session toolbar and pick your <code>.pub</code> file.</li>
+  <li>Fjord adds it to <code>~/.ssh/authorized_keys</code>, fixes the folder permissions and skips it if it's already there.
+      It then offers to switch the session to key login.</li>
+</ol>
+<h3>By hand (any SSH client)</h3>
+<p>Copy the whole line from the <code>.pub</code> file (Key generator → <span class="ui">Copy public key</span>), log in to the server and run:</p>
+<pre><code>mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh
+echo 'ssh-ed25519 AAAA...paste...the...whole...line kim@laptop' &gt;&gt; ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys</code></pre>
+<p class="muted">From a Linux/macOS machine that already has the key: <code>ssh-copy-id -i ~/.ssh/id_ed25519.pub user@server</code></p>
+
+<h2><span class="n">3</span>Switch the session to the key and test</h2>
+<p>Edit the saved session → <span class="ui">Authentication: Private key</span> → choose the private key (the file <i>without</i> <code>.pub</code>).
+Connect. If it logs in without asking for the server password, you're done.</p>
+<p class="muted">If the key is refused, Fjord falls back to asking for your password, so you won't be locked out of the session.</p>
+
+<h2><span class="n">4</span>Optional: turn off password logins on the server</h2>
+<div class="warn"><b>Do this only after step 3 works</b>, and keep one session open while you test with a new one.
+If you lock yourself out, you'll need console access (VM console, iDRAC/iLO, physical keyboard).</div>
+<p>Edit <code>/etc/ssh/sshd_config</code> (with <code>sudo nano</code>) and set:</p>
+<pre><code>PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes</code></pre>
+<p>Check the drop-in folder too — files there win over the main file. Ubuntu cloud images often have
+<code>50-cloud-init.conf</code> with <code>PasswordAuthentication yes</code>:</p>
+<pre><code>grep -ri passwordauthentication /etc/ssh/sshd_config.d/</code></pre>
+<p>Test the config and reload (the service is <code>ssh</code> on Debian/Ubuntu, <code>sshd</code> on RHEL/Fedora/Alma):</p>
+<pre><code>sudo sshd -t &amp;&amp; sudo systemctl reload ssh</code></pre>
+
+<h2><span class="n">5</span>Windows servers (OpenSSH Server on Windows)</h2>
+<table>
+  <tr><th>Account type</th><th>Where the public key goes</th></tr>
+  <tr><td>Normal user</td><td><code>C:\Users\&lt;user&gt;\.ssh\authorized_keys</code></td></tr>
+  <tr><td>Member of Administrators</td><td><code>C:\ProgramData\ssh\administrators_authorized_keys</code> — the per-user file is <b>ignored</b> for admins</td></tr>
+</table>
+<p>The admin file must only be accessible by Administrators and SYSTEM, or sshd ignores it. In an elevated PowerShell:</p>
+<pre><code>Add-Content -Path C:\ProgramData\ssh\administrators_authorized_keys -Value 'ssh-ed25519 AAAA... kim@laptop'
+icacls.exe C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F"</code></pre>
+<p class="muted">Fjord's Install key button only handles Linux/Unix servers.</p>
+
+<h2><span class="n">6</span>Existing PuTTY keys (.ppk)</h2>
+<p>Fjord reads <code>.ppk</code> files directly — just point the session at them. To use the same key with OpenSSH tools
+(Windows <code>ssh.exe</code>, Git, Linux), convert it:</p>
+<ul>
+  <li><b>PuTTYgen:</b> <span class="ui">Load</span> the .ppk → <span class="ui">Conversions → Export OpenSSH key (force new file format)</span>.</li>
+  <li><b>Linux:</b> <code>puttygen key.ppk -O private-openssh-new -o ~/.ssh/id_ed25519</code></li>
+</ul>
+<p>The public key line for <code>authorized_keys</code> is shown at the top of PuTTYgen ("Public key for pasting into OpenSSH authorized_keys file").</p>
+
+<h2><span class="n">7</span>Troubleshooting "Permission denied (publickey)"</h2>
+<ul>
+  <li><b>Permissions on the server.</b> sshd silently ignores keys if the files are too open:
+<pre><code>chmod go-w ~
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys</code></pre></li>
+  <li><b>Wrong user.</b> The key is installed for one account only — <code>root</code> and <code>kim</code> have separate files.</li>
+  <li><b>Broken line.</b> The key must be <i>one</i> line in authorized_keys. Pasting from some editors adds line breaks.</li>
+  <li><b>SELinux</b> (RHEL/Alma/Fedora): <code>restorecon -R ~/.ssh</code></li>
+  <li><b>See why the server refused:</b> <code>sudo journalctl -u ssh -n 50</code> (or <code>-u sshd</code>), or <code>/var/log/auth.log</code>.</li>
+  <li><b>Wrong file chosen.</b> The session needs the private key (no <code>.pub</code>); the server needs the public one.</li>
+</ul>
+
+<h2><span class="n">8</span>Good habits</h2>
+<ul>
+  <li>One key per PC. If a laptop is lost, remove just that line from <code>authorized_keys</code> on your servers.</li>
+  <li>Use a meaningful comment (<code>kim@work-laptop</code>) so you can tell keys apart later.</li>
+  <li>Back up your private key somewhere safe if re-installing the key everywhere would be painful — or just make a new one.</li>
+  <li>Never paste a private key into chat, email or a ticket. If it happens, generate a new key and remove the old public key from servers.</li>
+</ul>
+</main>
+<script src="guide.js"></script>
+</body>
+</html>

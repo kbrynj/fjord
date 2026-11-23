@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{161168FD-CF2E-4826-B71F-6A07B2FC1FA0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fjord.Core", "src\Fjord.Core\Fjord.Core.csproj", "{EF80E27A-A1D9-4C05-9705-30C1BF3E9789}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fjord.App", "src\Fjord.App\Fjord.App.csproj", "{3C9B4E21-7A1D-4F0B-9E57-2B8D6A4C1F10}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EF80E27A-A1D9-4C05-9705-30C1BF3E9789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF80E27A-A1D9-4C05-9705-30C1BF3E9789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF80E27A-A1D9-4C05-9705-30C1BF3E9789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF80E27A-A1D9-4C05-9705-30C1BF3E9789}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C9B4E21-7A1D-4F0B-9E57-2B8D6A4C1F10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C9B4E21-7A1D-4F0B-9E57-2B8D6A4C1F10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C9B4E21-7A1D-4F0B-9E57-2B8D6A4C1F10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C9B4E21-7A1D-4F0B-9E57-2B8D6A4C1F10}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EF80E27A-A1D9-4C05-9705-30C1BF3E9789} = {161168FD-CF2E-4826-B71F-6A07B2FC1FA0}
+		{3C9B4E21-7A1D-4F0B-9E57-2B8D6A4C1F10} = {161168FD-CF2E-4826-B71F-6A07B2FC1FA0}
+	EndGlobalSection
+EndGlobal

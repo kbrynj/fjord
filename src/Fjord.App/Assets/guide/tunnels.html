@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tunnels (port forwarding)</title>
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+<main>
+<h1>Tunnels (port forwarding)</h1>
+<p class="lead">Use the database, admin page or PC behind a server as if it were on your own machine, through the SSH connection you already have.</p>
+
+<div class="card">
+  <b>The idea in one paragraph.</b> Lots of things refuse connections from the internet on purpose: a database that only listens on the
+  server itself, a router's admin page, a Windows PC inside a customer's network. But you <i>can</i> SSH into a machine there.
+  A tunnel opens a port on your PC (say <code>localhost:15432</code>). Everything you send to it travels encrypted inside SSH, and the
+  server passes it on to the real target. Nothing on their firewall needs to change, and the tunnel closes when you disconnect.
+</div>
+
+<div class="route">
+  <div class="node"><b>This PC</b><code>localhost:15432</code></div>
+  <div class="arrow">SSH (encrypted)</div>
+  <div class="node"><b>pos-server</b>passes it on</div>
+  <div class="arrow">their network</div>
+  <div class="node"><b>192.168.1.10</b><code>port 5432</code></div>
+</div>
+
+<h2><span class="n">1</span>Making one in Fjord</h2>
+<ol>
+  <li>Connect to the server, then click <span class="ui">Tunnels</span> in the session toolbar. A panel opens beside the terminal, so you can keep typing.</li>
+  <li>Pick what you want to reach, e.g. <i>PostgreSQL database</i> or <i>Remote Desktop to a Windows PC</i>. Fjord fills in sensible ports and finds a free one on your PC.</li>
+  <li>Adjust the <b>address</b> if needed. The text under the picture tells you in plain words what will happen.</li>
+  <li><span class="ui">Save</span>. The tunnel starts straight away, and its card tells you exactly what to type, or gives you an
+      <span class="ui">Open in browser</span> / <span class="ui">Remote Desktop</span> button.</li>
+</ol>
+<p>Tunnels are saved with the session. Those marked <i>start automatically</i> open every time you connect. You can also add them
+before connecting, in the session editor under <span class="ui">Tunnels (port forwarding)</span>.</p>
+
+<h2><span class="n">2</span>The one rule to remember</h2>
+<div class="warn">The <b>target address is as seen from the server</b>, not from your PC.
+<code>localhost</code> means "the server itself". <code>192.168.1.10</code> means "the machine with that IP <i>in the server's network</i>".</div>
+
+<h2><span class="n">3</span>Examples</h2>
+
+<h3>A database that only accepts local connections</h3>
+<div class="route">
+  <div class="node"><b>This PC</b><code>localhost:15432</code></div><div class="arrow">SSH</div>
+  <div class="node"><b>server</b><code>port 5432</code></div>
+</div>
+<p>Preset <i>PostgreSQL database</i>, address <code>localhost</code>. In DBeaver/pgAdmin connect to host <code>localhost</code>, port
+<code>15432</code>, with the normal database user. MySQL/MariaDB works the same (<code>3306</code>).
+We use 15432 rather than 5432 so it doesn't clash with a database running on your own PC.</p>
+
+<h3>SQL Server on a back-office PC</h3>
+<p>Preset <i>SQL Server database</i>, address = the SQL Server machine's IP as seen from the server, port <code>1433</code>.
+In SSMS the server name is <code>localhost,11433</code>, <b>with a comma</b>, which is SQL Server's way of writing a port.
+Named instances (<code>PC\SQLEXPRESS</code>) use a random port by default. Give the instance a fixed TCP port in
+<i>SQL Server Configuration Manager → TCP/IP → IPAll</i> first.</p>
+
+<h3>The admin page of a router, printer or payment terminal</h3>
+<p>Preset <i>Web page on a device in their network</i>, address <code>192.168.1.1</code>, port <code>80</code> (or 443 for https, and pick
+<i>https</i> under Advanced → Open button). Click <span class="ui">Open in browser</span>.
+Some devices redirect to their own IP address. If the page "jumps away", use <i>Browse through the server</i> instead (below).</p>
+
+<h3>Remote Desktop to a Windows PC behind the server</h3>
+<p>Preset <i>Remote Desktop to a Windows PC</i>, address = the PC's IP, port <code>3389</code>. <span class="ui">Remote Desktop</span> on the card
+opens <code>mstsc</code> to <code>localhost:13389</code>. Log in with the PC's Windows account as usual.</p>
+
+<h3>Web UIs on your own server (Docker, Portainer, Radarr…)</h3>
+<p>Preset <i>Web page on the server</i>, address <code>localhost</code>, port = the app's port (Portainer 9000, Radarr 7878,
+Sonarr 8989, Jellyfin 8096…). Handy for containers published as <code>127.0.0.1:9000:9000</code> on purpose.</p>
+
+<h3>Browse as if you were on their network (SOCKS proxy)</h3>
+<div class="route">
+  <div class="node"><b>Firefox</b><code>proxy localhost:1080</code></div><div class="arrow">SSH</div>
+  <div class="node"><b>server</b>fetches for you</div><div class="arrow"></div>
+  <div class="node"><b>any address</b>it can reach</div>
+</div>
+<p>Preset <i>Browse through the server</i>. Then in <b>Firefox</b>: Settings → search "proxy" → <i>Manual proxy configuration</i> →
+SOCKS Host <code>localhost</code>, Port <code>1080</code>, <i>SOCKS v5</i>, and tick <i>Proxy DNS when using SOCKS v5</i>.
+Every internal page now works, including ones that only allow the customer's IP. Firefox has its own proxy setting,
+so your other browsers are unaffected. Set it back to "No proxy" when done.</p>
+
+<h3>Let the server reach something on your PC (reverse tunnel)</h3>
+<div class="route">
+  <div class="node"><b>server</b><code>localhost:8080</code></div><div class="arrow">SSH</div>
+  <div class="node"><b>This PC</b><code>port 3000</code></div>
+</div>
+<p>Preset <i>Share something on my PC with the server</i>. You're running a test API on your PC at port 3000. On the server,
+<code>curl http://localhost:8080</code> reaches it. Useful for webhooks or letting a POS box talk to a development build.</p>
+
+<h2><span class="n">4</span>When it doesn't work</h2>
+<table>
+  <tr><th>Fjord says</th><th>What to do</th></tr>
+  <tr><td>Port … on this PC is already in use</td><td>Another program or tunnel has it. Click <i>Pick a free port</i> in the tunnel editor.</td></tr>
+  <tr><td>… couldn't reach 192.168.1.10:5432</td><td>The tunnel is up, but the server can't reach the target. Check the IP <i>from the server</i>:
+      <code>nc -zv 192.168.1.10 5432</code>. Is the service running? Does it listen on that address
+      (a database listening only on 127.0.0.1 must be reached with address <code>localhost</code>)?</td></tr>
+  <tr><td>… doesn't allow port forwarding</td><td>The server has <code>AllowTcpForwarding no</code> in <code>/etc/ssh/sshd_config</code>. Change it to
+      <code>yes</code> and reload sshd, or ask the admin.</td></tr>
+  <tr><td>… refused to open port … (reverse tunnel)</td><td>The port is taken on the server, or is below 1024. Try another port.</td></tr>
+  <tr><td>Browser shows "connection reset"</td><td>Often http vs https: try the other one (Advanced → Open button), or port 443.</td></tr>
+</table>
+<p class="muted">Only TCP can be tunnelled. UDP services (DNS, some VoIP, game servers) won't work.</p>
+
+<h2><span class="n">5</span>Good to know</h2>
+<ul>
+  <li><b>Only you can use it.</b> Tunnels listen on <code>localhost</code>, so other computers on your network can't use them. Advanced →
+      <i>Let other computers use this tunnel</i> changes that. Use it sparingly, because anyone on your network then gets a way into the customer's side.</li>
+  <li><b>Tunnels live and die with the session.</b> Disconnect, and they close. Reconnect, and the auto-start ones come back.</li>
+  <li><b>You're using the customer's network.</b> Treat a tunnel like being on site: only reach what you're allowed to.</li>
+</ul>
+
+<h3>Same thing on the command line</h3>
+<p class="muted">For reference: Fjord's three tunnel types are OpenSSH's <code>-L</code>, <code>-R</code> and <code>-D</code>.</p>
+<pre><code>ssh -L 15432:localhost:5432 kim@server       # Local:   this PC :15432 → server's own :5432
+ssh -L 13389:192.168.1.50:3389 kim@server    # Local:   this PC :13389 → 192.168.1.50:3389 via server
+ssh -R 8080:localhost:3000 kim@server        # Remote:  server :8080 → this PC :3000
+ssh -D 1080 kim@server                       # Dynamic: SOCKS proxy on this PC :1080</code></pre>
+</main>
+<script src="guide.js"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<Window x:Class="Fjord.Dialogs.TunnelDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tunnel" Width="900" Height="640" MinWidth="760" MinHeight="560"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <Grid Margin="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="290" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ═══ Left: what do you want to reach? ═══ -->
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="What do you want to reach?" FontSize="16" FontWeight="SemiBold" Margin="4,0,0,8" />
+            <ListBox x:Name="PresetList" SelectionChanged="PresetList_SelectionChanged"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="2,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Glyph}" Style="{StaticResource Glyph}" FontSize="16" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource Hint}" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+        <!-- ═══ Right: settings with live explanation ═══ -->
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Name" Style="{StaticResource SectionHeader}" Margin="0,0,0,4" />
+                <TextBox x:Name="NameBox" TextChanged="Field_Changed" />
+
+                <!-- Port on the listening side -->
+                <TextBlock x:Name="ListenLabel" Style="{StaticResource SectionHeader}" />
+                <StackPanel Orientation="Horizontal">
+                    <TextBox x:Name="ListenPortBox" Width="100" TextChanged="Field_Changed" />
+                    <TextBlock x:Name="PortStatus" Margin="10,0,0,0" VerticalAlignment="Center" Style="{StaticResource Hint}" />
+                    <Button x:Name="FreePortButton" Content="Pick a free port" Margin="10,0,0,0" Click="FreePort_Click" />
+                </StackPanel>
+                <TextBlock x:Name="ListenHelp" Style="{StaticResource Hint}" Margin="0,4,0,0" />
+
+                <!-- Target -->
+                <StackPanel x:Name="TargetPanel">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock x:Name="TargetHostLabel" Style="{StaticResource SectionHeader}" />
+                            <TextBox x:Name="TargetHostBox" TextChanged="Field_Changed" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock x:Name="TargetPortLabel" Text="Port" Style="{StaticResource SectionHeader}" />
+                            <TextBox x:Name="TargetPortBox" TextChanged="Field_Changed" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock x:Name="TargetHelp" Style="{StaticResource Hint}" Margin="0,4,0,0" />
+                </StackPanel>
+
+                <!-- Picture of the route -->
+                <Border Margin="0,16,0,0" Padding="12" CornerRadius="6" BorderThickness="1"
+                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel>
+                        <StackPanel x:Name="Diagram" Orientation="Horizontal" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="ExplainText" TextWrapping="Wrap" Margin="0,12,0,0" FontWeight="SemiBold" />
+                        <TextBlock x:Name="UsageText" Style="{StaticResource Hint}" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock x:Name="ErrorText" Foreground="#C42B1C" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" />
+
+                <CheckBox x:Name="AutoStartBox" Content="Start automatically every time I connect to this session" Margin="0,14,0,0" IsChecked="True" />
+
+                <!-- Example for the chosen preset -->
+                <TextBlock Text="EXAMPLE" Style="{StaticResource SectionHeader}" Margin="0,16,0,4" />
+                <TextBlock x:Name="ExampleText" Style="{StaticResource Hint}" />
+
+                <Expander Header="Advanced" Margin="0,14,0,0">
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="Type" Style="{StaticResource SectionHeader}" Margin="0,0,0,4" />
+                        <ComboBox x:Name="KindBox" Width="380" HorizontalAlignment="Left" SelectionChanged="Field_Changed">
+                            <ComboBoxItem Content="Local — a port on this PC leads to the server side (ssh -L)" />
+                            <ComboBoxItem Content="Remote — a port on the server leads to this PC (ssh -R)" />
+                            <ComboBoxItem Content="Dynamic — SOCKS proxy through the server (ssh -D)" />
+                        </ComboBox>
+                        <TextBlock Text="Open button" Style="{StaticResource SectionHeader}" Margin="0,10,0,4" />
+                        <ComboBox x:Name="OpenBox" Width="380" HorizontalAlignment="Left" SelectionChanged="Field_Changed">
+                            <ComboBoxItem Content="Copy the address" />
+                            <ComboBoxItem Content="Open in browser (http)" />
+                            <ComboBoxItem Content="Open in browser (https)" />
+                            <ComboBoxItem Content="Start Remote Desktop" />
+                        </ComboBox>
+                        <CheckBox x:Name="AllowOthersBox" Margin="0,12,0,0" Checked="Field_Changed" Unchecked="Field_Changed"
+                                  Content="Let other computers use this tunnel (listen on all network interfaces)" />
+                        <TextBlock Style="{StaticResource Hint}" Margin="24,2,0,0"
+                                   Text="Normally only this PC can use it. Turn on only if a colleague's machine or a device on your network needs it." />
+                    </StackPanel>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ═══ Footer ═══ -->
+        <DockPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,14,0,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button x:Name="SaveButton" Content="Save" IsDefault="True" MinWidth="90" Click="Save_Click" />
+                <Button Content="Cancel" IsCancel="True" MinWidth="90" Margin="8,0,0,0" />
+            </StackPanel>
+            <TextBlock VerticalAlignment="Center" Style="{StaticResource Hint}">
+                <Hyperlink Click="Guide_Click">How tunnels work — guide with examples</Hyperlink>
+            </TextBlock>
+        </DockPanel>
+    </Grid>
+</Window>

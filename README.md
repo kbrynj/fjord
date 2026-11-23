@@ -1,0 +1,145 @@
+<div align="center">
+
+<img src="src/Fjord.App/Assets/fjord.png" width="96" alt="Fjord logo" />
+
+# Fjord
+
+**A modern SSH client for Windows — tabs, SFTP, tunnels and SSH keys, without the 1999 UI.**
+
+![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4)
+![.NET](https://img.shields.io/badge/.NET-10-512BD4)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+</div>
+
+Fjord is a PuTTY replacement built around the things you actually do every day: keep a tidy list of servers,
+open a few terminals side by side, move files around, reach a database behind a firewall, and log in with
+keys instead of passwords. It uses the Windows 11 Fluent look, and the terminal is
+[xterm.js](https://xtermjs.org/) — the same terminal that powers VS Code — so colours, mouse support and UTF-8 just work.
+
+## Features
+
+### Sessions
+- **Saved sessions in folders** (per customer, per project…), searchable, double-click or Enter to connect.
+- **Quick connect** — type `user@host` or `host:2222` and press Enter.
+- **Import from PuTTY** — reads your saved PuTTY sessions from the registry, including `.ppk` key paths.
+- **Startup command** and **default SFTP folder** per session, plus keep-alives.
+
+### Terminal
+- xterm-256color, true colour, mouse, UTF-8 (æøå, emoji), Ctrl+click to open links.
+- PuTTY-style clipboard: **select to copy, right-click to paste** (or Ctrl+Shift+C / Ctrl+Shift+V).
+- Tabs: **Ctrl+Tab** to switch, **Ctrl+Shift+T** for another terminal on the same server, **Ctrl+Shift+W** to close.
+- **Ctrl + / − / 0** to change font size. Press **Enter** in a dropped session to reconnect.
+
+### SFTP browser
+- Browse, upload (button or drag files and folders from Explorer), download, rename, delete, new folder.
+- Open a remote file directly in its Windows app.
+- Opens from a terminal tab using **the same login** — no second password prompt.
+
+### Tunnels (port forwarding)
+- Reach a database, admin page or Windows PC behind a server from your own PC.
+- Start from examples — *PostgreSQL database*, *Remote Desktop to a PC on their network*, *Browse through the server* —
+  and the editor explains in plain words, with a picture, what each setting does.
+- Local, remote and SOCKS forwarding (`-L`, `-R`, `-D`). Tunnels can start automatically on connect and live in a side
+  panel with *Open in browser* / *Remote Desktop* buttons.
+- Failures are explained: port already in use, target unreachable, forwarding disabled on the server.
+
+### SSH keys
+- **Key generator** — Ed25519 (default) or RSA-4096 in native OpenSSH format, optional passphrase
+  (aes256-ctr + bcrypt, same as `ssh-keygen`). Saved to `%USERPROFILE%\.ssh` with the permissions Windows OpenSSH requires.
+- **Install key** — Fjord's `ssh-copy-id`: adds your public key to the server's `authorized_keys`, fixes permissions,
+  skips duplicates, then offers to switch the session to key login.
+- **Built-in guides** for keys and tunnels that open in their own window, so they never block your session.
+
+### Security
+- Host keys are verified: trust on first use, with a loud warning if a server's key changes.
+- Remembered passwords are encrypted with Windows DPAPI — only your Windows user on that PC can read them.
+- Reads OpenSSH, PEM and PuTTY `.ppk` private keys.
+
+## Getting started
+
+**Requirements:** Windows 10 or 11, the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0), and the
+WebView2 runtime (preinstalled on Windows 11 and up-to-date Windows 10).
+
+```powershell
+git clone https://github.com/kbrynj/fjord.git
+cd fjord
+dotnet run --project src\Fjord.App
+```
+
+Or open `Fjord.sln` in Visual Studio 2026, Rider or VS Code (C# Dev Kit) and press F5.
+
+### Build a portable folder
+
+```powershell
+dotnet publish src\Fjord.App -c Release -r win-x64 --self-contained -o publish\Fjord
+```
+
+Copy `publish\Fjord` anywhere and run `Fjord.exe` — the target PC doesn't need .NET installed.
+Drop `--self-contained` for a much smaller folder if .NET 10 is already there.
+
+## Your data
+
+Everything lives in `%APPDATA%\Fjord` (Settings → *Data folder*):
+
+| File | Contents |
+|---|---|
+| `profiles.json` | Saved sessions and tunnels — back this up to keep your sessions. |
+| `known_hosts.json` | Trusted server host keys. |
+| `settings.json` | Terminal font, scrollback, clipboard behaviour, default username. |
+
+Remembered passwords in `profiles.json` are DPAPI-encrypted and only decrypt for your Windows user on that PC.
+
+## How it's built
+
+- **.NET 10 + WPF** with the built-in Fluent theme
+- **[SSH.NET](https://github.com/sshnet/SSH.NET)** for SSH, SFTP and port forwarding
+- **[xterm.js](https://xtermjs.org/)** in **WebView2** for the terminal
+
+```
+src/
+  Fjord.Core/     UI-free logic, unit-testable: sessions, key generation, SSH connection + host keys, tunnels
+  Fjord.App/      WPF app: main window, terminal / SFTP / tunnel views, dialogs, pluggable features
+    Assets/       xterm.js page + bridge, built-in guides (plain HTML — edit freely)
+```
+
+The code deliberately stays simple: code-behind and a handful of singletons, no MVVM toolkit or DI container.
+
+## Contributing
+
+Issues and pull requests are welcome. Most new things are a button somewhere — implement `IAppFeature` and add
+one line to `FeatureRegistry`:
+
+```csharp
+public sealed class UptimeFeature : IAppFeature
+{
+    public string Title => "Uptime";
+    public string Glyph => "";                    // Segoe Fluent Icons
+    public FeatureScope Scope => FeatureScope.Session;  // Session = terminal toolbar, Global = sidebar
+
+    public void Execute(FeatureContext ctx)
+    {
+        if (ctx.Terminal?.Client is { } ssh)
+            MessageBox.Show(ssh.RunCommand("uptime").Result);
+    }
+}
+```
+
+Through `FeatureContext` a feature can reach the main window (`OpenTerminal`, `OpenSftp`, `AddTab`, `ActiveTab`) and,
+for session features, the terminal (`Profile`, the connected `Client`, its `Endpoint` for more channels with the same
+login, and `Send("text")` to type into the shell).
+
+- A new kind of tab is a `UserControl` implementing `ISessionTab`, opened with `ctx.Shell.AddTab(...)`.
+- A new per-session setting is a property on `SessionProfile` (it persists automatically) plus a field in `ProfileDialog`.
+- A new tunnel example ("Redis", "VNC"…) is one entry in `TunnelPresets.All`.
+
+See [CLAUDE.md](CLAUDE.md) for the architecture rules (threading, persistence, the terminal bridge protocol).
+
+### Roadmap ideas
+
+Snippets / macros · jump hosts · session logging to file · colour schemes · Pageant / ssh-agent support ·
+two-pane SFTP with a local side.
+
+## License
+
+[MIT](LICENSE). Third-party components and their licences are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
