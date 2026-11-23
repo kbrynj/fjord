@@ -29,7 +29,7 @@ SSH.NET 2026.0.1, xterm.js 6 in WebView2. Personal tool: prefer simple, readable
   overlapping it). User-facing wording lives in `TunnelRule.Describe/UsageHint` and `TunnelPresets` — keep it non-technical.
 - **SFTP tab** is split into partials: `SftpTab.xaml.cs` (navigation, transfers, plumbing), `.Editing.cs` (open → watch
   → upload on save, with server-change check), `.MoveCopy.cs` (cut/copy/paste, `cp -a` over SSH with SFTP streaming
-  fallback), `.DragDrop.cs` (drag-out to Explorer as virtual files). Drag-out uses `VirtualFileDataObject`
+  fallback), `.DragDrop.cs` (drag-out to Explorer as virtual files), `.TwoPane.cs` (optional `LocalPane` on the left, toggled live by `AppSettings.SftpTwoPane` via `AppSettings.Saved`). Drag-out uses `VirtualFileDataObject`
   (raw COM: FileGroupDescriptorW + FileContents streams + IDataObjectAsyncCapability) started with `OleDrag.Run`, not
   WPF's DataObject — an earlier version that handed Explorer temp CF_HDROP paths and downloaded inside GetData crashed
   explorer.exe. Drags inside the app are recognised via the static `s_activeDrag`, not a data format. Server-side logic lives

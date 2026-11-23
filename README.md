@@ -40,6 +40,9 @@ keys instead of passwords. It uses the Windows 11 Fluent look, and the terminal 
   server, so big files don't travel through your PC. Ctrl+V with files copied in Explorer uploads them.
 - **Rename or move** (F2) — type a new name, or a path like `../archive/` to move it.
 - **Permissions** — checkboxes or a number (644, 755…), optionally for everything inside a folder.
+- **Two panes (optional)** — turn on *Settings → SFTP → Two panes* to get this PC on the left and the server on
+  the right. Drag between them, or use Upload / Download, which then go straight to the other pane's folder.
+  Local deletes go to the Recycle Bin.
 - New file, new folder, delete, download, copy path.
 - Opens from a terminal tab using **the same login** — no second password prompt.
 
@@ -146,7 +149,7 @@ See [CLAUDE.md](CLAUDE.md) for the architecture rules (threading, persistence, t
 ### Roadmap ideas
 
 Snippets / macros · jump hosts · session logging to file · colour schemes · Pageant / ssh-agent support ·
-two-pane SFTP with a local side · owner/group names instead of ids.
+owner/group names instead of ids.
 
 ## License
 

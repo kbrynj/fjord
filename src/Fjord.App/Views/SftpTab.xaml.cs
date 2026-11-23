@@ -87,6 +87,7 @@ public partial class SftpTab : UserControl, ISessionTab
         ActionButtons.Children.Add(UiHelpers.ToolbarButton("", null, "Delete selected (Del)", Delete_Click));
         ActionButtons.Children.Add(UiHelpers.ToolbarButton("", null, "Open a terminal to this server", (_, _) => _shell.OpenTerminal(Profile)));
 
+        InitLocalPane();
         Loaded += OnFirstLoaded;
     }
 
@@ -219,6 +220,12 @@ public partial class SftpTab : UserControl, ISessionTab
 
     private void Upload_Click(object sender, RoutedEventArgs e)
     {
+        // Two panes: upload what's selected on the left, if anything.
+        if (TwoPane && Local.Selected.Count > 0)
+        {
+            _ = UploadAsync(Local.Selected.Select(x => x.FullPath).ToList());
+            return;
+        }
         var dlg = new OpenFileDialog { Title = $"Upload to {_path}", Multiselect = true };
         if (dlg.ShowDialog(Window.GetWindow(this)) == true)
             _ = UploadAsync(dlg.FileNames);
@@ -287,6 +294,14 @@ public partial class SftpTab : UserControl, ISessionTab
         var items = Selected;
         if (items.Count == 0 || _client is null) return;
 
+        // Two panes: download straight into the folder shown on the left.
+        if (TwoPane && Local.CurrentFolder.Length > 0)
+        {
+            if (await DownloadToFolderAsync(items, Local.CurrentFolder))
+                Local.Refresh(select: items.Count == 1 ? SafeFileName(items[0].Name) : null);
+            return;
+        }
+
         var dlg = new OpenFolderDialog
         {
             Title = "Download to…",
@@ -298,11 +313,7 @@ public partial class SftpTab : UserControl, ISessionTab
         AppServices.Settings.LastDownloadFolder = target;
         AppServices.Settings.Save();
 
-        await RunAsync("Preparing download…", async (client, ct) =>
-        {
-            var (count, bytes) = await Task.Run(() => DownloadTree(client, items, target, ct), ct);
-            SetStatus($"Downloaded {count} file(s), {RemoteEntry.FormatSize(bytes)} → {target}");
-        });
+        await DownloadToFolderAsync(items, target);
     }
 
     /// <summary>Downloads files and folders (recursively) into a local folder. Blocking — call off the UI thread.</summary>
@@ -566,6 +577,7 @@ public partial class SftpTab : UserControl, ISessionTab
         _closed = true;
         _opCts?.Cancel();
         StopEditing();
+        SaveLocalPaneState();
         var client = _client;
         var shell = _shellClient;
         _client = null;

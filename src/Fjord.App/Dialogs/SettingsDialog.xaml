@@ -25,6 +25,11 @@
         <CheckBox x:Name="CopyOnSelectBox" Content="Copy on select, right-click pastes (PuTTY style)" Margin="0,12,0,0" />
         <CheckBox x:Name="CursorBlinkBox" Content="Blinking cursor" Margin="0,6,0,0" />
 
+        <TextBlock Text="SFTP" Style="{StaticResource SectionHeader}" Margin="0,18,0,4" />
+        <CheckBox x:Name="TwoPaneBox" Content="Two panes: this PC on the left, the server on the right" />
+        <TextBlock Style="{StaticResource Hint}" Margin="26,2,0,0"
+                   Text="Drag files between the panes, or use the arrow buttons, to upload and download." />
+
         <TextBlock Text="GENERAL" Style="{StaticResource SectionHeader}" Margin="0,18,0,4" />
         <TextBlock Text="Default username for new sessions" Style="{StaticResource Hint}" />
         <TextBox x:Name="DefaultUserBox" Margin="0,4,0,0" />

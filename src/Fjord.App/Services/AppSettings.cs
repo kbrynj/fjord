@@ -14,10 +14,21 @@ public sealed class AppSettings
     public string Theme { get; set; } = "System";
     public string DefaultUsername { get; set; } = "";
     public string? LastDownloadFolder { get; set; }
+    /// <summary>SFTP tabs show a local (this PC) file pane next to the server's files.</summary>
+    public bool SftpTwoPane { get; set; }
+    /// <summary>Folder the local pane opens in (where it was last).</summary>
+    public string? LastLocalFolder { get; set; }
 
     private static string PathOnDisk => AppPaths.File("settings.json");
 
+    /// <summary>Raised after <see cref="Save"/>, so open windows can apply changes right away.</summary>
+    public event EventHandler? Saved;
+
     public static AppSettings Load() => JsonStore.Load<AppSettings>(PathOnDisk);
 
-    public void Save() => JsonStore.Save(PathOnDisk, this);
+    public void Save()
+    {
+        JsonStore.Save(PathOnDisk, this);
+        Saved?.Invoke(this, EventArgs.Empty);
+    }
 }
