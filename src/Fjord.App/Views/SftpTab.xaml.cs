@@ -27,6 +27,9 @@ public sealed class RemoteEntry
     public int Mode { get; init; }
     public int Owner { get; init; }
     public int Group { get; init; }
+    /// <summary>"root", "www-data"… or the number when the server doesn't know the id.</summary>
+    public string OwnerName { get; init; } = "";
+    public string GroupName { get; init; } = "";
 
     public string Permissions => (IsDirectory ? "d" : IsLink ? "l" : "-") + UnixMode.ToSymbolic(Mode);
     public string Icon => IsDirectory ? "" : IsLink ? "" : "";
@@ -62,6 +65,7 @@ public partial class SftpTab : UserControl, ISessionTab
     private CancellationTokenSource? _opCts;
     private string _path = "/";
     private bool _closed;
+    private UserNames _names = UserNames.Empty;
 
     public SessionProfile Profile { get; }
     public string Title => "SFTP · " + Profile.DisplayName;
@@ -99,6 +103,8 @@ public partial class SftpTab : UserControl, ISessionTab
         try
         {
             _client = await _endpoint.ConnectSftpAsync();
+            var client = _client;
+            _names = await Task.Run(() => UserNames.Load(client));   // owner/group names for the list
             if (_closed) { _client.Dispose(); return; }
             if (_ownsEndpoint && _endpoint.ProfileModified && AppServices.Profiles.Find(Profile.Id) is not null)
                 AppServices.Profiles.Upsert(Profile);
@@ -137,7 +143,7 @@ public partial class SftpTab : UserControl, ISessionTab
 
     private Task RefreshAsync() => NavigateAsync(_path);
 
-    private static RemoteEntry ToEntry(ISftpFile f) => new()
+    private RemoteEntry ToEntry(ISftpFile f) => new()
     {
         Name = f.Name,
         FullName = f.FullName,
@@ -148,6 +154,8 @@ public partial class SftpTab : UserControl, ISessionTab
         Mode = UnixMode.FromAttributes(f.Attributes),
         Owner = f.UserId,
         Group = f.GroupId,
+        OwnerName = _names.User(f.UserId),
+        GroupName = _names.Group(f.GroupId),
     };
 
     private static string Combine(string dir, string name) => RemoteFileOps.Combine(dir, name);
@@ -456,7 +464,10 @@ public partial class SftpTab : UserControl, ISessionTab
 
         var first = items[0];
         var target = items.Count == 1 ? first.Name : $"{items.Count} items";
-        var owner = items.Count == 1 ? $"Owner user id {first.Owner}, group id {first.Group}" : "The settings below are applied to all of them.";
+        var owner = items.Count == 1
+            ? $"Owner: {Describe(first.OwnerName, first.Owner)}   ·   Group: {Describe(first.GroupName, first.Group)}"
+            : "The settings below are applied to all of them.";
+        static string Describe(string name, int id) => name == id.ToString() ? $"id {id}" : $"{name} ({id})";
         var dlg = new PermissionsDialog(target, owner, first.Mode, items.Any(i => i.IsDirectory), items.All(i => i.IsDirectory))
         {
             Owner = Window.GetWindow(this),

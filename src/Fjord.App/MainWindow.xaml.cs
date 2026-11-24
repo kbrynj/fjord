@@ -105,6 +105,8 @@ public partial class MainWindow : Window
             case "close":
                 if (Tabs.Items.Cast<TabItem>().FirstOrDefault(t => t.Tag == tab) is { } item) CloseTab(item);
                 break;
+            case "snippets": SnippetRunner.ShowMenu(tab, tab.ButtonFor<SnippetsFeature>()); break;
+            case { } k when k.StartsWith("snippet:") && int.TryParse(k[8..], out var n): SnippetRunner.RunNumber(tab, n); break;
         }
     }
 

@@ -11,6 +11,7 @@ public static class AppServices
 {
     public static ProfileStore Profiles { get; } = new();
     public static KnownHostsStore KnownHosts { get; } = new();
+    public static Fjord.Core.Snippets.SnippetStore Snippets { get; } = new();
     public static AppSettings Settings { get; } = AppSettings.Load();
     public static ISecretProtector Protector { get; } = new DpapiProtector();
 

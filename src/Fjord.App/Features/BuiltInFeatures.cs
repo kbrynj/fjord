@@ -225,6 +225,20 @@ public sealed class LogFeature : IAppFeature
     }
 }
 
+/// <summary>Saved commands and macros: a menu to send them to this terminal (also Ctrl+Shift+S).</summary>
+public sealed class SnippetsFeature : IAppFeature
+{
+    public string Title => "Snippets";
+    public string Glyph => "";
+    public FeatureScope Scope => FeatureScope.Session;
+    public string? ToolTip => "Saved commands and macros (Ctrl+Shift+S; Ctrl+Shift+1…9 run the first nine)";
+
+    public void Execute(FeatureContext ctx)
+    {
+        if (ctx.Terminal is { } tab) SnippetRunner.ShowMenu(tab, placementTarget: null);
+    }
+}
+
 public sealed class DuplicateSessionFeature : IAppFeature
 {
     public string Title => "";
@@ -288,6 +302,15 @@ public sealed class ImportPuttyFeature : IAppFeature
                             Title, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
             AppServices.Profiles.AddRange(fresh);
     }
+}
+
+public sealed class SnippetsManagerFeature : IAppFeature
+{
+    public string Title => "Snippets";
+    public string Glyph => "";
+    public FeatureScope Scope => FeatureScope.Global;
+    public string? ToolTip => "Create and edit saved commands and macros";
+    public void Execute(FeatureContext ctx) => SnippetsWindow.ShowFor(ctx.Shell);
 }
 
 public sealed class SettingsFeature : IAppFeature

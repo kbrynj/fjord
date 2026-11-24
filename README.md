@@ -40,6 +40,10 @@ keys instead of passwords. It uses the Windows 11 Fluent look, and the terminal 
   session editor to log every connection. Plain-text logs strip colour codes, keep only the final state of progress
   bars, replace full-screen programs (vim, top) with a note, and can put the time on every line; raw logs keep the
   exact bytes. Folder and file-name pattern (`{session}_{date}_{time}.log`) are set in Settings.
+- **Snippets and macros** — saved commands in folders, from the **Snippets** button or **Ctrl+Shift+S**; the first
+  nine also run with **Ctrl+Shift+1…9**. Several lines make a macro (each line runs in turn), and `{ask:Service}`
+  asks for a value when it runs, e.g. `journalctl -u {ask:Service} -f`. Run it, or just type it so you can edit
+  first. Manage them from the sidebar.
 
 ### SFTP file manager
 - **Edit remote files in any Windows app** — open `nginx.conf` in Notepad++ or VS Code, and every save is uploaded
@@ -49,7 +53,8 @@ keys instead of passwords. It uses the Windows 11 Fluent look, and the terminal 
 - **Cut, copy and paste** on the server (Ctrl+X / C / V), also between tabs of the same server. Copies run `cp` on the
   server, so big files don't travel through your PC. Ctrl+V with files copied in Explorer uploads them.
 - **Rename or move** (F2) — type a new name, or a path like `../archive/` to move it.
-- **Permissions** — checkboxes or a number (644, 755…), optionally for everything inside a folder.
+- **Permissions** — checkboxes or a number (644, 755…), optionally for everything inside a folder. Owner and group
+  are shown by name (`root`, `www-data`) from the server's /etc/passwd and /etc/group.
 - **Two panes (optional)** — turn on *Settings → SFTP → Two panes* to get this PC on the left and the server on
   the right. Drag between them, or use Upload / Download, which then go straight to the other pane's folder.
   Local deletes go to the Recycle Bin.
@@ -158,8 +163,7 @@ See [CLAUDE.md](CLAUDE.md) for the architecture rules (threading, persistence, t
 
 ### Roadmap ideas
 
-Snippets / macros · jump hosts · Pageant / ssh-agent support ·
-owner/group names instead of ids.
+Pageant / ssh-agent support · jump hosts.
 
 ## License
 

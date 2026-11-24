@@ -44,6 +44,9 @@ SSH.NET 2026.0.1, xterm.js 6 in WebView2. Personal tool: prefer simple, readable
 - **Session logs**: `Core/Logging/SessionLogger.cs` (thread-safe; output arrives on the terminal reader thread) and
   `PlainTextConverter` (streaming state machine: strips CSI/OSC/DCS, handles split UTF-8 and escapes, \r overwrite,
   backspace, alternate screen). `TerminalTab.EnqueueOutput` feeds it; `LogFeature` is the toolbar menu.
+- **Snippets**: `Core/Snippets/SnippetStore.cs` (snippets.json, `{ask:Label}` expansion, keystrokes); `SnippetRunner`
+  builds the menu and sends to the terminal; hotkeys come from terminal.js as `snippets` / `snippet:N`.
+  **Owner names**: `Core/Sftp/UserNames.cs` reads /etc/passwd + /etc/group over SFTP once per SFTP tab.
 - Help never blocks work: guides open in the non-modal `GuideWindow` (`Assets/guide/*.html`); inline hints over popups.
 - Icons are Segoe Fluent Icons code points written as `""` escapes (not raw characters).
 

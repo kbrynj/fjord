@@ -375,6 +375,9 @@ public partial class TerminalTab : UserControl, ISessionTab
         }
     }
 
+    /// <summary>The toolbar button of a session feature (e.g. to open a menu under it from the keyboard).</summary>
+    public Button? ButtonFor<T>() where T : IAppFeature => _featureButtons.FirstOrDefault(kv => kv.Key is T).Value;
+
     // ───────────────────────── session log ─────────────────────────
 
     private volatile SessionLogger? _logger;

@@ -57,7 +57,8 @@
                         <DataGridTextColumn Header="Size" Binding="{Binding SizeText}" SortMemberPath="Size" Width="100" />
                         <DataGridTextColumn Header="Modified" Binding="{Binding Modified, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" />
                         <DataGridTextColumn Header="Permissions" Binding="{Binding Permissions}" Width="110" FontFamily="Cascadia Mono, Consolas" />
-                        <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="80" />
+                        <DataGridTextColumn Header="Owner" Binding="{Binding OwnerName}" SortMemberPath="OwnerName" Width="90" />
+                        <DataGridTextColumn Header="Group" Binding="{Binding GroupName}" SortMemberPath="GroupName" Width="90" />
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>

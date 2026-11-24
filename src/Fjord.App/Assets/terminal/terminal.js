@@ -1,7 +1,7 @@
 // Bridge between xterm.js and the C# host (TerminalTab.xaml.cs).
 // Host -> page:  { t: 'data', b: <base64 bytes> } | { t: 'focus' } | { t: 'status', text } | { t: 'options', fontFamily?, fontSize?, theme? }
 // Page -> host:  { t: 'ready'|'resize', cols, rows } | { t: 'input', d } | { t: 'binary', d }
-//                { t: 'copy', text } | { t: 'paste' } | { t: 'open', uri } | { t: 'hotkey', k }
+//                { t: 'copy', text } | { t: 'paste' } | { t: 'open', uri } | { t: 'hotkey', k }   (k: nexttab, prevtab, duplicate, close, snippets, snippet:1…9)
 (() => {
   const host = window.chrome.webview;
   const post = (msg) => host.postMessage(JSON.stringify(msg));
@@ -82,6 +82,9 @@
     if (e.shiftKey && k === 'insert') { post({ t: 'paste' }); return false; }
     if (e.ctrlKey && k === 'tab') { post({ t: 'hotkey', k: e.shiftKey ? 'prevtab' : 'nexttab' }); return false; }
     if (e.ctrlKey && e.shiftKey && k === 't') { post({ t: 'hotkey', k: 'duplicate' }); return false; }
+    // Snippets: Ctrl+Shift+S = menu, Ctrl+Shift+1…9 = run snippet n (e.code, so it works on any keyboard layout).
+    if (e.ctrlKey && e.shiftKey && !e.altKey && k === 's') { post({ t: 'hotkey', k: 'snippets' }); return false; }
+    if (e.ctrlKey && e.shiftKey && !e.altKey && /^Digit[1-9]$/.test(e.code)) { post({ t: 'hotkey', k: 'snippet:' + e.code.slice(5) }); return false; }
     if (e.ctrlKey && e.shiftKey && k === 'w') { post({ t: 'hotkey', k: 'close' }); return false; }
     if (e.ctrlKey && (k === '=' || k === '+')) { setFontSize(term.options.fontSize + 1); return false; }
     if (e.ctrlKey && k === '-') { setFontSize(term.options.fontSize - 1); return false; }

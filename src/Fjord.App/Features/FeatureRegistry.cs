@@ -11,12 +11,14 @@ public static class FeatureRegistry
         new InstallKeyFeature(),
         new ColorPromptFeature(),
         new LogFeature(),
+        new SnippetsFeature(),
         new DuplicateSessionFeature(),
 
         // Sidebar tools
         new KeyGeneratorFeature(),
         new KeyGuideFeature(),
         new TunnelGuideFeature(),
+        new SnippetsManagerFeature(),
         new ImportPuttyFeature(),
         new SettingsFeature(),
     ];
